@@ -28,5 +28,5 @@ func saveImage(img *image.RGBA, filename string) {
 		log.Fatal(err)
 	}
 
-	jpeg.Encode(file, img, &jpeg.Options{80})
+	jpeg.Encode(file, img, &jpeg.Options{100})
 }

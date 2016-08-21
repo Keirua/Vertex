@@ -11,17 +11,17 @@ import (
 const (
 	width  = 640
 	height = 480
-	fov    = 30
+	fov    = 30.0
 )
 
 func computeRayDirection(x int, y int) math3d.Ray {
 	invWidth := 1.0 / float64(width)
 	invHeight := 1.0 / float64(height)
-	aspectratio := width / float64(height)
-	angle := math.Tan(math.Pi * 0.5 * fov * 180.0)
+	aspectratio := float64(width) / float64(height)
+	var angle float64 = math.Tan(0.5 * fov)
 
 	xx := float64(2*((float64(x)+0.5)*invWidth)-1) * angle * aspectratio
-	yy := float64(1-2*((float64(y)+0.5)*invHeight)) * angle
+	yy := float64(1.0-2.0*((float64(y)+0.5)*invHeight)) * angle
 
 	var direction = math3d.Vertex{xx, yy, -1}
 	direction.Normalize()
@@ -30,25 +30,45 @@ func computeRayDirection(x int, y int) math3d.Ray {
 }
 
 func trace(ray math3d.Ray) bool {
-	//svar sph math3d.Sphere = math3d.Sphere{math3d.Vertex{5.0, -1, -15}, 2.0, math3d.Vertex{0.90, 0.76, 0.76}}
-	return (bool(rand.Intn(2) > 0))
-	//return sph.Intersect(ray)
+    var sph math3d.Sphere = math3d.Sphere{math3d.Vertex{5.0, -1, -15}, 2.0}
+	//var sph math3d.Sphere = math3d.Sphere{math3d.Vertex{0.0, 0, -5}, 1/*, math3d.Vertex{0.90, 0.76, 0.76}*/}
+    return sph.Intersect(ray)
 }
 
 func computeColorAtXY(x int, y int) color.RGBA {
 	var ray = computeRayDirection(x, y)
-
+    //fmt.Println(x,y)
 	var value uint8 = 0
 	if trace(ray) {
 		value = 0xFF
+        //fmt.Println("Intersect !")
 	}
 
 	return color.RGBA{value, value, value, 0xFF}
 }
 
+/*
+Doit balayer en X; y
+De : -0.356707 ; 0.267391
+A : 0.357824 ; -0.268507
+*/
+
 func main() {
+    fmt.Println(computeRayDirection(0,0))
+    fmt.Println(computeRayDirection(640,480))
+
+    /*var width = 640, height = 480
+    invWidth := 1.0 / float64(width)
+    invHeight := 1.0 / float64(height)
+    aspectratio := width / float64(height)
+    var angle float64 = math.Tan(math.Pi * 0.5 * fov * 180.0)*/
+
+
+    /*xx := float64(2*((float64(x)+0.5)*invWidth)-1) * angle * aspectratio
+    yy := float64(1.0-2.0*((float64(y)+0.5)*invHeight)) * angle*/
+
     rand.Seed(42)
-	image := generateImage(width, height, computeColorAtXY)
+    image := generateImage(width, height, computeColorAtXY)
 	saveImage(image, "out.jpg")
 	fmt.Println("Success !")
 }
