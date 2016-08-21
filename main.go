@@ -3,7 +3,14 @@ package main
 import (
     "fmt"
     "math3d"
+    "image/color"
 )
+
+func computeColorAtXY (x int, y int) color.RGBA { 
+    value  := uint8(x*y)
+    return color.RGBA{value, value, value, 0xFF}
+}
+
 
 
 
@@ -11,7 +18,7 @@ func main() {
 	var v = math3d.Vertex{23.0, 42.17}
 	var v2 = v.Scale(2.0)
 	fmt.Println("Yo !", v, *v2, v.LengthSq())
-    m := createImage(32,32)
+    m := generateImage(256,256, computeColorAtXY)
     saveImage (m, "out.jpg")
     fmt.Println("Success !")
 }
