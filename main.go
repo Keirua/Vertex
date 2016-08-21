@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"image/color"
+	"math"
 	"math/rand"
 	"math3d"
 )
@@ -18,31 +19,34 @@ var blueMaterial = math3d.Material{math3d.Color01{0, .5, 1}}
 var sphere1 = math3d.Sphere{math3d.Vertex{4.0, -1, -15}, 2.0, redMaterial}
 var sphere2 = math3d.Sphere{math3d.Vertex{0.0, 0, -5}, 1, blueMaterial}
 
-var g_Spheres = []math3d.Sphere{sphere1, sphere2}
+var g_Spheres = []math3d.Sphere{sphere2, sphere1}
 var g_Camera math3d.Camera
 
-func trace(ray math3d.Ray) bool {
-	var hasIntersection bool = false
+func trace(ray math3d.Ray) math3d.Color01 {
+	var intersectionInfo = math3d.IntersectionInfo{math.MaxFloat64, math3d.Material{}}
+	var finalColor math3d.Color01
 
 	for _, sph := range g_Spheres {
-		if sph.Intersect(ray) {
-			hasIntersection = true
-			break
+		var currentIntersectionInfo math3d.IntersectionInfo
+		if sph.Intersect(ray, &currentIntersectionInfo) {
+			if currentIntersectionInfo.T < intersectionInfo.T {
+				intersectionInfo.T = currentIntersectionInfo.T
+				intersectionInfo.Material = sph.Material
+			}
 		}
 	}
 
-	return hasIntersection
+	finalColor = intersectionInfo.Material.SurfaceColor
+
+	return finalColor
 }
 
 func computeColorAtXY(x int, y int) color.RGBA {
 	var ray = g_Camera.ComputeRayDirection(x, y)
 
-	var value uint8 = 0
-	if trace(ray) {
-		value = 0xFF
-	}
+	var tracedColor = trace(ray)
 
-	return color.RGBA{value, value, value, 0xFF}
+	return tracedColor.ToRGBA()
 }
 
 func main() {
