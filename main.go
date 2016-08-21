@@ -3,7 +3,8 @@ package main
 import (
 	"fmt"
 	"image/color"
-	"math"
+    "math"
+	"math/rand"
 	"math3d"
 )
 
@@ -30,7 +31,7 @@ func computeRayDirection(x int, y int) math3d.Ray {
 
 func trace(ray math3d.Ray) bool {
 	//svar sph math3d.Sphere = math3d.Sphere{math3d.Vertex{5.0, -1, -15}, 2.0, math3d.Vertex{0.90, 0.76, 0.76}}
-	return (math.Random() % 2)
+	return (bool(rand.Intn(2) > 0))
 	//return sph.Intersect(ray)
 }
 
@@ -46,6 +47,7 @@ func computeColorAtXY(x int, y int) color.RGBA {
 }
 
 func main() {
+    rand.Seed(42)
 	image := generateImage(width, height, computeColorAtXY)
 	saveImage(image, "out.jpg")
 	fmt.Println("Success !")
