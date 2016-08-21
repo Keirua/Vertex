@@ -4,6 +4,7 @@ import (
 	"image"
 	"image/color"
 	"image/jpeg"
+	"image/png"
 	"log"
 	"os"
 )
@@ -29,6 +30,17 @@ func SaveJPEG(img *image.RGBA, filename string) {
 	}
 
 	jpeg.Encode(file, img, &jpeg.Options{100})
+}
+
+func SavePNG(img *image.RGBA, filename string) {
+	file, err := os.Create(filename)
+	defer file.Close()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	png.Encode(file, img)
 }
 
 func SavePPM(img *image.RGBA, filename string) {
