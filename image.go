@@ -20,7 +20,7 @@ func generateImage(width int, height int, computePixel func(i int, j int) color.
 	return m
 }
 
-func saveImage(img *image.RGBA, filename string) {
+func SaveJPEG(img *image.RGBA, filename string) {
 	file, err := os.Create(filename)
 	defer file.Close()
 
@@ -30,3 +30,25 @@ func saveImage(img *image.RGBA, filename string) {
 
 	jpeg.Encode(file, img, &jpeg.Options{100})
 }
+
+func SavePPM(img *image.RGBA, filename string) {
+	file, err := os.Create(filename)
+	defer file.Close()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// jpeg.Encode(file, img, &jpeg.Options{100})
+}
+
+/*
+std::ofstream ofs("./untitled.ppm", std::ios::out | std::ios::binary);
+ofs << "P6\n" << width << " " << height << "\n255\n";
+for (unsigned i = 0; i < width * height; ++i) {
+    ofs << (unsigned char)(std::min(float(1), image[i].x) * 255) <<
+           (unsigned char)(std::min(float(1), image[i].y) * 255) <<
+           (unsigned char)(std::min(float(1), image[i].z) * 255);
+}
+ofs.close();
+*/
