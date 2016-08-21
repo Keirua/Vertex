@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"image/color"
-	"math"
 	"math/rand"
 	"math3d"
 )
@@ -19,26 +18,13 @@ var blueMaterial = math3d.Material{math3d.Color01{0, .5, 1}}
 var sphere1 = math3d.Sphere{math3d.Vertex{4.0, -1, -15}, 2.0, redMaterial}
 var sphere2 = math3d.Sphere{math3d.Vertex{0.0, 0, -5}, 1, blueMaterial}
 
-var spheres = []math3d.Sphere{sphere1, sphere2}
-
-func computeRayDirection(x int, y int) math3d.Ray {
-	var aspectratio float64 = float64(width) / float64(height)
-	var angle float64 = math.Tan(0.5 * fov)
-
-	var xx float64 = float64(2*((float64(x)+0.5)/float64(width))-1) * angle * aspectratio
-	var yy float64 = float64(1.0-2.0*((float64(y)+0.5)/float64(height))) * angle
-
-	var direction = math3d.Vertex{xx, yy, -1}
-	direction.Normalize()
-
-	return math3d.Ray{math3d.Vertex{}, direction}
-}
+var g_Spheres = []math3d.Sphere{sphere1, sphere2}
+var g_Camera math3d.Camera
 
 func trace(ray math3d.Ray) bool {
-
 	var hasIntersection bool = false
 
-	for _, sph := range spheres {
+	for _, sph := range g_Spheres {
 		if sph.Intersect(ray) {
 			hasIntersection = true
 			break
@@ -49,7 +35,7 @@ func trace(ray math3d.Ray) bool {
 }
 
 func computeColorAtXY(x int, y int) color.RGBA {
-	var ray = computeRayDirection(x, y)
+	var ray = g_Camera.ComputeRayDirection(x, y)
 
 	var value uint8 = 0
 	if trace(ray) {
@@ -61,6 +47,8 @@ func computeColorAtXY(x int, y int) color.RGBA {
 
 func main() {
 	rand.Seed(42)
+	g_Camera.Initialize(width, height, fov)
+
 	image := generateImage(width, height, computeColorAtXY)
 	saveImage(image, "out.jpg")
 	fmt.Println("Success !")
