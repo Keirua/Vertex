@@ -26,15 +26,18 @@ var sphere2 = math3d.Sphere{math3d.Vertex{0.0, 0, -15}, 4, greenMaterial}
 var sphere3 = math3d.Sphere{math3d.Vertex{3.0, 2, -10}, 3, blueMaterial}
 var sphere4 = math3d.Sphere{math3d.Vertex{-5.5, 0, -8}, 3, purpleMaterial}
 
-var light = math3d.Sphere{math3d.Vertex{3.0, -3, -10}, 0.5, purpleMaterial}
+//var lightSphere = math3d.Sphere{math3d.Vertex{3.0, -3, -10}, 0.5, purpleMaterial}
+var light = math3d.Light{math3d.Vertex{3.0, -3, -10}, math3d.Color01{0.65, .2, 0.97}}
 
-var g_Spheres = []math3d.Sphere{sphere2, sphere1, sphereFloor, sphere3, sphere4, light}
+var g_Spheres = []math3d.Sphere{sphere2, sphere1, sphereFloor, sphere3, sphere4/*, lightSphere*/}
+var g_Lights = []math3d.Light{light}
 var g_Camera math3d.Camera
 
-func trace(ray math3d.Ray) math3d.Color01 {
+/*
+	Finds, among all the objects in the scene, with which one there is the closest intersection (if any)
+*/
+func getIntersectionInfo(ray math3d.Ray) math3d.IntersectionInfo {
 	var intersectionInfo = math3d.IntersectionInfo{math.MaxFloat64, -1}
-	var finalColor math3d.Color01
-
 	for index, sph := range g_Spheres {
 		var currentIntersectionInfo math3d.IntersectionInfo
 		if sph.Intersect(ray, &currentIntersectionInfo) {
@@ -44,6 +47,14 @@ func trace(ray math3d.Ray) math3d.Color01 {
 			}
 		}
 	}
+
+	return intersectionInfo;
+}
+
+func trace(ray math3d.Ray) math3d.Color01 {
+	var finalColor math3d.Color01
+
+	var intersectionInfo = getIntersectionInfo(ray)
 
 	if intersectionInfo.ObjectIndex != -1 {
 		var objectHit = g_Spheres[intersectionInfo.ObjectIndex]
