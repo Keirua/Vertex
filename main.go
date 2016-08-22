@@ -30,8 +30,8 @@ var sphere4 = math3d.Sphere{math3d.Vertex{-5.5, 0, -8}, 3, purpleMaterial}
 var light = math3d.Light{math3d.Vertex{3.0, -3, -10}, math3d.Color01{0.65, .2, 0.97}}
 var light2 = math3d.Light{math3d.Vertex{0, -5, 0}, math3d.Color01{0.87, 0.33, 0.97}}
 
-var g_Spheres = []math3d.Sphere{sphere2, sphere1, sphereFloor, sphere3, sphere4/*, lightSphere*/}
-var g_Lights = []math3d.Light{/*light, */light2}
+var g_Spheres = []math3d.Sphere{sphere2, sphere1, sphereFloor, sphere3, sphere4 /*, lightSphere*/}
+var g_Lights = []math3d.Light{ /*light, */ light2}
 var g_Camera math3d.Camera
 
 /*
@@ -49,7 +49,7 @@ func getIntersectionInfo(ray math3d.Ray) math3d.IntersectionInfo {
 		}
 	}
 
-	return intersectionInfo;
+	return intersectionInfo
 }
 
 func trace(ray math3d.Ray) math3d.Color01 {
@@ -57,38 +57,37 @@ func trace(ray math3d.Ray) math3d.Color01 {
 	var coef float64 = 1.0
 	var intersectionInfo = getIntersectionInfo(ray)
 
-
 	if intersectionInfo.ObjectIndex != -1 {
 		var objectHit = g_Spheres[intersectionInfo.ObjectIndex]
 		var intersectionPoint = ray.VertexAt(intersectionInfo.T)
 		var normal = objectHit.ComputeNormalAtPoint(intersectionPoint)
 		normal.Normalize()
 
-		for _,currLight := range g_Lights {
-			var lightRay math3d.Ray; 
-            lightRay.Origin = intersectionPoint
-            lightRay.Direction = currLight.Position.Substract(intersectionPoint); 
-            lightRay.Direction.Normalize()
-            if (lightRay.Direction.Dot(normal) <= 0.0){
-          		continue
-            }
+		for _, currLight := range g_Lights {
+			var lightRay math3d.Ray
+			lightRay.Origin = intersectionPoint
+			lightRay.Direction = currLight.Position.Substract(intersectionPoint)
+			lightRay.Direction.Normalize()
+			if lightRay.Direction.Dot(normal) <= 0.0 {
+				continue
+			}
 
-            var isInShadow bool = false; 
-            for _, currObject := range g_Spheres {
-            	var shadowIntersectionInfo math3d.IntersectionInfo
-                if (currObject.Intersect(lightRay, &shadowIntersectionInfo)) { 
-                    isInShadow = true; 
-                    break; 
-                }
-            }
-            
-            if (!isInShadow) {
-      			// lambert contribution
-      			var lambert float64 = lightRay.Direction.Dot(normal) * coef
+			var isInShadow bool = false
+			for _, currObject := range g_Spheres {
+				var shadowIntersectionInfo math3d.IntersectionInfo
+				if currObject.Intersect(lightRay, &shadowIntersectionInfo) {
+					isInShadow = true
+					break
+				}
+			}
 
-      			// finalColor = finalColor + lambert * currentLight * currentMaterial
-      			finalColor = finalColor.AddColor(objectHit.Material.SurfaceColor.MulColor(currLight.Color).MulFloat(lambert))
-            }
+			if !isInShadow {
+				// lambert contribution
+				var lambert float64 = lightRay.Direction.Dot(normal) * coef
+
+				// finalColor = finalColor + lambert * currentLight * currentMaterial
+				finalColor = finalColor.AddColor(objectHit.Material.SurfaceColor.MulColor(currLight.Color).MulFloat(lambert))
+			}
 		}
 		//finalColor = objectHit.Material.SurfaceColor
 	}
