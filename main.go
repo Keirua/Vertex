@@ -32,30 +32,51 @@ var g_Spheres = []math3d.Sphere{sphere2, sphere1, sphereFloor, sphere3, sphere4,
 var g_Camera math3d.Camera
 
 func trace(ray math3d.Ray) math3d.Color01 {
-	var intersectionInfo = math3d.IntersectionInfo{math.MaxFloat64, math3d.Material{}}
+	var intersectionInfo = math3d.IntersectionInfo{math.MaxFloat64, -1}
 	var finalColor math3d.Color01
 
-	for _, sph := range g_Spheres {
+	for index, sph := range g_Spheres {
 		var currentIntersectionInfo math3d.IntersectionInfo
 		if sph.Intersect(ray, &currentIntersectionInfo) {
 			if currentIntersectionInfo.T < intersectionInfo.T {
 				intersectionInfo.T = currentIntersectionInfo.T
-				intersectionInfo.Material = sph.Material
+				intersectionInfo.ObjectIndex = index
 			}
 		}
 	}
 
-	finalColor = intersectionInfo.Material.SurfaceColor
+	if intersectionInfo.ObjectIndex != -1 {
+		var objectHit = g_Spheres[intersectionInfo.ObjectIndex]
+
+		/*var intersectionPoint = ray.VertexAt(intersectionInfo.T)
+		var normal = objectHit.ComputeNormalAtPoint(intersectionPoint)
+		normal.Normalize()*/
+
+		finalColor = objectHit.Material.SurfaceColor
+	}
 
 	return finalColor
 }
 
 func computeColorAtXY(x int, y int) color.RGBA {
-	var ray = g_Camera.ComputeRayDirection(x, y)
+	var finalColor math3d.Color01
 
-	var tracedColor = trace(ray)
+	// 2x2 anti aliasing : for every point, we send 4 ray
+	// each one contributing to 1/4th of the final pixel color
+	// much slower since we launch 4x more rays per pixels
+	/*for i := float64(x); i < float64(x)+1.0; i += 0.5 {
+		for j := float64(y); j < float64(y)+1.0; j += 0.5 {
+			var ray = g_Camera.ComputeRayDirection(i, j)
+			var tracedColor = trace(ray)
 
-	return tracedColor.ToRGBA()
+			finalColor = finalColor.Add(tracedColor.Mul(0.25))
+		}
+	}*/
+
+	var ray = g_Camera.ComputeRayDirection(float64(x), float64(y))
+	finalColor = trace(ray)
+
+	return finalColor.ToRGBA()
 }
 
 func main() {
