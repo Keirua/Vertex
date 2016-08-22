@@ -9,9 +9,10 @@ import (
 )
 
 const (
-	width  = 640
-	height = 480
-	fov    = 30.0
+	width             = 640
+	height            = 480
+	fov               = 30.0
+	antiAliasingLevel = 1 // minimum 1
 )
 
 var whiteMaterial = math3d.Material{math3d.Color01{0.8, 0.8, 0.8}}
@@ -98,20 +99,23 @@ func trace(ray math3d.Ray) math3d.Color01 {
 func computeColorAtXY(x int, y int) color.RGBA {
 	var finalColor math3d.Color01
 
-	// 2x2 anti aliasing : for every point, we send 4 ray
+	var steps float64 = 1.0 / antiAliasingLevel
+
+	// with 2x2 anti aliasing, for every point, we send 4 ray
 	// each one contributing to 1/4th of the final pixel color
 	// much slower since we launch 4x more rays per pixels
-	/*for i := float64(x); i < float64(x)+1.0; i += 0.5 {
-		for j := float64(y); j < float64(y)+1.0; j += 0.5 {
-			var ray = g_Camera.ComputeRayDirection(i, j)
+	var i float64
+	var j float64
+
+	for i = 0.0; i < antiAliasingLevel; i++ {
+		for j = 0.0; j < antiAliasingLevel; j++ {
+			var ray = g_Camera.ComputeRayDirection(float64(x)+i*steps, float64(y)+j*steps)
 			var tracedColor = trace(ray)
 
-			finalColor = finalColor.Add(tracedColor.Mul(0.25))
+			finalColor = finalColor.AddColor(tracedColor.MulFloat(steps * steps))
 		}
-	}*/
+	}
 
-	var ray = g_Camera.ComputeRayDirection(float64(x), float64(y))
-	finalColor = trace(ray)
 
 	return finalColor.ToRGBA()
 }
