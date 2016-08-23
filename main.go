@@ -70,22 +70,40 @@ func trace(ray math3d.Ray, contributionCoef float64, depth int) math3d.Color01 {
 		// Add Reflection		
 		var reflectionContributionCoef = contributionCoef * objectHit.Material.ReflectionCoef;
 		
+		// Computes the reflection ray
 		var reflet float64 = 2.0 * (ray.Direction.Dot(normal));
 		var reflectedRay math3d.Ray;
-		reflectedRay.Origin = intersectionPoint.Add(normal.Mulf(1e-4));
-		reflectedRay.Direction = ray.Direction.Substract(normal.Mulf(reflet));
+		reflectedRay.Origin = intersectionPoint.Add(normal.Mulf(1e-4))
+		reflectedRay.Direction = ray.Direction.Substract(normal.Mulf(reflet))
 
-		if (reflectionContributionCoef > 0.0 && depth < MAX_DEPTH){
+		if ((objectHit.Material.ReflectionCoef >0 || objectHit.Material.Transparency > 0.0 ) && depth < MAX_DEPTH){
+
 			var reflectionColor = trace(reflectedRay, reflectionContributionCoef, depth+1)
 			var refractionColor = math3d.Color01{}
-			//finalColor.AddColor(newColor)
+
+			if (objectHit.Material.Transparency > 0) { 
+				// Computes the refraction ray
+				var refractionRay math3d.Ray;
+	            var refractionIndex float64 = 1.1	// indice of refraction ! /!\ should be part of material
+	            var eta float64 = 1.0 / refractionIndex
+	            var cosi float64 = -normal.Dot(ray.Direction);  // requires normalized vectors
+	            var k float64 = 1 - eta * eta * (1 - cosi * cosi);
+
+	            refractionRay.Origin = intersectionPoint.Add(normal.Mulf(1e-4))
+	            refractionRay.Direction = ray.Direction.Mulf(eta).Add(normal.Mulf(eta *  cosi - math.Sqrt(k))); 
+	            refractionRay.Direction.Normalize(); 
+
+	            refractionColor = trace(refractionRay, reflectionContributionCoef, depth+1)
+	        }
+
 			var fresnelCoef = 0.8;
 			var reflectionRefractionColorMix = reflectionColor.MulFloat(fresnelCoef).AddColor(refractionColor.MulFloat(1-fresnelCoef));
-			return objectHit.Material.SurfaceColor.AddColor(reflectionRefractionColorMix.MulFloat(objectHit.Material.ReflectionCoef)).MulFloat(1.0 /*iobject transparency*/)
+
+			finalColor = objectHit.Material.SurfaceColor.AddColor(reflectionRefractionColorMix.MulFloat(reflectionContributionCoef))
 		}
 
 		// Add Lighting		
-		/*for _, currLight := range g_Lights {
+		for _, currLight := range g_Lights {
 			var lightRay math3d.Ray
 			lightRay.Origin = intersectionPoint
 			lightRay.Direction = currLight.Position.Substract(intersectionPoint)
@@ -112,10 +130,8 @@ func trace(ray math3d.Ray, contributionCoef float64, depth int) math3d.Color01 {
 			} else {
 				// soften the shadow. Total hack, no solid mathematical foundation
 				//finalColor = finalColor.AddColor(objectHit.Material.SurfaceColor.MulFloat(0.1))
-
 			}
-		}*/
-		
+		}
 	}
 
 	return finalColor
