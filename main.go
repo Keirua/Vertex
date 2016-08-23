@@ -29,11 +29,11 @@ var sphere3 = math3d.Sphere{math3d.Vertex{3.0, 2, -10}, 3, blueMaterial}
 var sphere4 = math3d.Sphere{math3d.Vertex{-5.5, 0, -8}, 3, purpleMaterial}
 
 //var lightSphere = math3d.Sphere{math3d.Vertex{3.0, -3, -10}, 0.5, purpleMaterial}
-var light = math3d.Light{math3d.Vertex{3.0, -3, -10}, math3d.Color01{0.65, .2, 0.97}}
-var light2 = math3d.Light{math3d.Vertex{0, -5, 0}, math3d.Color01{0.87, 0.33, 0.97}}
+var light = math3d.Light{math3d.Vertex{3.0, -10, -10}, math3d.Color01{0.65, .6, 0.97}}
+var light2 = math3d.Light{math3d.Vertex{0, -5, 0}, math3d.Color01{0.87, 0.8, 0.97}}
 
 var g_Spheres = []math3d.Sphere{sphere2, sphere1, sphereFloor, sphere3, sphere4 /*, lightSphere*/}
-var g_Lights = []math3d.Light{ /*light, */ light2}
+var g_Lights = []math3d.Light{ light, light2}
 var g_Camera math3d.Camera
 var g_Options Options
 
@@ -104,9 +104,9 @@ func trace(ray math3d.Ray) math3d.Color01 {
 
 func clampColor(c math3d.Color01) math3d.Color01 {
 	return math3d.Color01{
-		math.min(1.0, math.max(0.0, c.R)),
-		math.min(1.0, math.max(0.0, c.G)),
-		math.min(1.0, math.max(0.0, c.G))	}
+		math.Min(1.0, math.Max(0.0, c.R)),
+		math.Min(1.0, math.Max(0.0, c.G)),
+		math.Min(1.0, math.Max(0.0, c.B))}
 }
 
 func computeColorAtXY(x int, y int) color.RGBA {
