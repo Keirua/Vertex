@@ -1,6 +1,5 @@
 untitled.ppm
-out.png
-out-antialiasing.png
+*.png
 raytracer
 Vertex
 raytracer.txt

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"image/color"
 	"math"
@@ -9,10 +10,10 @@ import (
 )
 
 const (
-	width             = 640
-	height            = 480
-	fov               = 30.0
-	antiAliasingLevel = 1 // minimum 1
+	DEFAULT_WIDTH              = 640
+	DEFAULT_HEIGHT             = 480
+	DEFAULT_FOV                = 30.0
+	DEFAULT_ANTIALIASING_LEVEL = 1 // minimum 1
 )
 
 var whiteMaterial = math3d.Material{math3d.Color01{0.8, 0.8, 0.8}}
@@ -34,6 +35,7 @@ var light2 = math3d.Light{math3d.Vertex{0, -5, 0}, math3d.Color01{0.87, 0.33, 0.
 var g_Spheres = []math3d.Sphere{sphere2, sphere1, sphereFloor, sphere3, sphere4 /*, lightSphere*/}
 var g_Lights = []math3d.Light{ /*light, */ light2}
 var g_Camera math3d.Camera
+var g_Options Options
 
 /*
 	Finds, among all the objects in the scene, with which one there is the closest intersection (if any)
@@ -88,6 +90,10 @@ func trace(ray math3d.Ray) math3d.Color01 {
 
 				// finalColor = finalColor + lambert * currentLight * currentMaterial
 				finalColor = finalColor.AddColor(objectHit.Material.SurfaceColor.MulColor(currLight.Color).MulFloat(lambert))
+			} else {
+				// soften the shadow. Total hack, no solid mathematical foundation
+				finalColor = finalColor.AddColor(objectHit.Material.SurfaceColor.MulFloat(0.1))
+
 			}
 		}
 		//finalColor = objectHit.Material.SurfaceColor
@@ -96,10 +102,17 @@ func trace(ray math3d.Ray) math3d.Color01 {
 	return finalColor
 }
 
+func clampColor(c math3d.Color01) math3d.Color01 {
+	return math3d.Color01{
+		math.min(1.0, math.max(0.0, c.R)),
+		math.min(1.0, math.max(0.0, c.G)),
+		math.min(1.0, math.max(0.0, c.G))	}
+}
+
 func computeColorAtXY(x int, y int) color.RGBA {
 	var finalColor math3d.Color01
 
-	var steps float64 = 1.0 / antiAliasingLevel
+	var steps float64 = 1.0 / float64(g_Options.AntiAliasingLevel)
 
 	// with 2x2 anti aliasing, for every point, we send 4 ray
 	// each one contributing to 1/4th of the final pixel color
@@ -107,8 +120,8 @@ func computeColorAtXY(x int, y int) color.RGBA {
 	var i float64
 	var j float64
 
-	for i = 0.0; i < antiAliasingLevel; i++ {
-		for j = 0.0; j < antiAliasingLevel; j++ {
+	for i = 0.0; i < float64(g_Options.AntiAliasingLevel); i++ {
+		for j = 0.0; j < float64(g_Options.AntiAliasingLevel); j++ {
 			var ray = g_Camera.ComputeRayDirection(float64(x)+i*steps, float64(y)+j*steps)
 			var tracedColor = trace(ray)
 
@@ -116,15 +129,36 @@ func computeColorAtXY(x int, y int) color.RGBA {
 		}
 	}
 
+	return clampColor(finalColor).ToRGBA()
+}
 
-	return finalColor.ToRGBA()
+type Options struct {
+	Width             int
+	Height            int
+	Fov               float64
+	AntiAliasingLevel int
+	OutputFilename    string
+}
+
+func init() {
+	rand.Seed(42)
+
+	flag.IntVar(&g_Options.Width, "width", DEFAULT_WIDTH, "The output image's width")
+	flag.IntVar(&g_Options.Height, "height", DEFAULT_HEIGHT, "The output image's height")
+	flag.StringVar(&g_Options.OutputFilename, "output", "out.png", "The output filename")
+	flag.IntVar(&g_Options.AntiAliasingLevel, "as", DEFAULT_ANTIALIASING_LEVEL, "AntiAliasingLevel")
+	flag.Float64Var(&g_Options.Fov, "fov", DEFAULT_FOV, "FOV, in degre")
+
+	flag.Parse()
+
+	g_Camera.Initialize(g_Options.Width, g_Options.Height, g_Options.Fov)
 }
 
 func main() {
-	rand.Seed(42)
-	g_Camera.Initialize(width, height, fov)
 
-	image := generateImage(width, height, computeColorAtXY)
-	SavePNG(image, "out.png")
+	image := generateImage(g_Options.Width, g_Options.Height, computeColorAtXY)
+	fmt.Println(g_Options)
+	SavePNG(image, g_Options.OutputFilename)
+
 	fmt.Println("Success !")
 }
