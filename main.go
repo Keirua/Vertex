@@ -13,14 +13,15 @@ const (
 	DEFAULT_WIDTH              = 640
 	DEFAULT_HEIGHT             = 480
 	DEFAULT_FOV                = 30.0
-	DEFAULT_ANTIALIASING_LEVEL = 1 // minimum 1
+	DEFAULT_ANTIALIASING_LEVEL = 1 // minimum
+	MAX_DEPTH                  = 3
 )
 
-var whiteMaterial = math3d.Material{math3d.Color01{0.8, 0.8, 0.8}}
-var redMaterial = math3d.Material{math3d.Color01{1, 0, 0}}
-var blueMaterial = math3d.Material{math3d.Color01{0, .5, 1}}
-var purpleMaterial = math3d.Material{math3d.Color01{0.65, .2, 0.97}}
-var greenMaterial = math3d.Material{math3d.Color01{0.3, 0.9, 0.2}}
+var whiteMaterial = math3d.Material{math3d.Color01{0.8, 0.8, 0.8}, 0.5, 0.5}
+var redMaterial = math3d.Material{math3d.Color01{1, 0, 0}, 0.5, 0.5}
+var blueMaterial = math3d.Material{math3d.Color01{0, .5, 1}, 0.5, 0.5}
+var purpleMaterial = math3d.Material{math3d.Color01{0.65, .2, 0.97}, 0.5,0.5}
+var greenMaterial = math3d.Material{math3d.Color01{0.3, 0.9, 0.2}, 0.5,0.5}
 
 var sphereFloor = math3d.Sphere{math3d.Vertex{0, 10003, -20}, 10000.0, whiteMaterial}
 var sphere1 = math3d.Sphere{math3d.Vertex{4.0, -1, -5}, 2.0, redMaterial}
@@ -33,7 +34,7 @@ var light = math3d.Light{math3d.Vertex{3.0, -10, -10}, math3d.Color01{0.65, .6, 
 var light2 = math3d.Light{math3d.Vertex{0, -5, 0}, math3d.Color01{0.87, 0.8, 0.97}}
 
 var g_Spheres = []math3d.Sphere{sphere2, sphere1, sphereFloor, sphere3, sphere4 /*, lightSphere*/}
-var g_Lights = []math3d.Light{ light, light2}
+var g_Lights = []math3d.Light{/*light, */light2}
 var g_Camera math3d.Camera
 var g_Options Options
 
@@ -55,9 +56,9 @@ func getIntersectionInfo(ray math3d.Ray) math3d.IntersectionInfo {
 	return intersectionInfo
 }
 
-func trace(ray math3d.Ray) math3d.Color01 {
+func trace(ray math3d.Ray, contributionCoef float64, depth int) math3d.Color01 {
 	var finalColor math3d.Color01
-	var coef float64 = 1.0
+	// Find the closest object the ray intersects																														
 	var intersectionInfo = getIntersectionInfo(ray)
 
 	if intersectionInfo.ObjectIndex != -1 {
@@ -66,7 +67,25 @@ func trace(ray math3d.Ray) math3d.Color01 {
 		var normal = objectHit.ComputeNormalAtPoint(intersectionPoint)
 		normal.Normalize()
 
-		for _, currLight := range g_Lights {
+		// Add Reflection		
+		var reflectionContributionCoef = contributionCoef * objectHit.Material.ReflectionCoef;
+		
+		var reflet float64 = 2.0 * (ray.Direction.Dot(normal));
+		var reflectedRay math3d.Ray;
+		reflectedRay.Origin = intersectionPoint.Add(normal.Mulf(1e-4));
+		reflectedRay.Direction = ray.Direction.Substract(normal.Mulf(reflet));
+
+		if (reflectionContributionCoef > 0.0 && depth < MAX_DEPTH){
+			var reflectionColor = trace(reflectedRay, reflectionContributionCoef, depth+1)
+			var refractionColor = math3d.Color01{}
+			//finalColor.AddColor(newColor)
+			var fresnelCoef = 0.8;
+			var reflectionRefractionColorMix = reflectionColor.MulFloat(fresnelCoef).AddColor(refractionColor.MulFloat(1-fresnelCoef));
+			return objectHit.Material.SurfaceColor.AddColor(reflectionRefractionColorMix.MulFloat(objectHit.Material.ReflectionCoef)).MulFloat(1.0 /*iobject transparency*/)
+		}
+
+		// Add Lighting		
+		/*for _, currLight := range g_Lights {
 			var lightRay math3d.Ray
 			lightRay.Origin = intersectionPoint
 			lightRay.Direction = currLight.Position.Substract(intersectionPoint)
@@ -86,17 +105,17 @@ func trace(ray math3d.Ray) math3d.Color01 {
 
 			if !isInShadow {
 				// lambert contribution
-				var lambert float64 = lightRay.Direction.Dot(normal) * coef
+				var lambert float64 = lightRay.Direction.Dot(normal) * contributionCoef
 
 				// finalColor = finalColor + lambert * currentLight * currentMaterial
 				finalColor = finalColor.AddColor(objectHit.Material.SurfaceColor.MulColor(currLight.Color).MulFloat(lambert))
 			} else {
 				// soften the shadow. Total hack, no solid mathematical foundation
-				finalColor = finalColor.AddColor(objectHit.Material.SurfaceColor.MulFloat(0.1))
+				//finalColor = finalColor.AddColor(objectHit.Material.SurfaceColor.MulFloat(0.1))
 
 			}
-		}
-		//finalColor = objectHit.Material.SurfaceColor
+		}*/
+		
 	}
 
 	return finalColor
@@ -123,7 +142,7 @@ func computeColorAtXY(x int, y int) color.RGBA {
 	for i = 0.0; i < float64(g_Options.AntiAliasingLevel); i++ {
 		for j = 0.0; j < float64(g_Options.AntiAliasingLevel); j++ {
 			var ray = g_Camera.ComputeRayDirection(float64(x)+i*steps, float64(y)+j*steps)
-			var tracedColor = trace(ray)
+			var tracedColor = trace(ray, 1.0, 0)
 
 			finalColor = finalColor.AddColor(tracedColor.MulFloat(steps * steps))
 		}
