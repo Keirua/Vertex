@@ -64,21 +64,18 @@ func trace(ray math3d.Ray, contributionCoef float64, depth int) math3d.Color01 {
 	if intersectionInfo.ObjectIndex != -1 {
 		var objectHit = g_VisibleObjects[intersectionInfo.ObjectIndex]
 		var intersectionPoint = ray.VertexAt(intersectionInfo.T)
+		var normal = objectHit.ComputeNormalAtPoint(intersectionPoint)
+		normal.Normalize()
 
 
 		// Compute color at the surface
 		var colorOnSurface = objectHit.GetMaterial().SurfaceColor
 		if (objectHit.GetMaterial().Texture != nil) {
-			
-
-			var colorAtUV = objectHit.GetMaterial().Texture.GetColor01AtUV(intersectionPoint.X-math.Floor(intersectionPoint.X),intersectionPoint.Y-math.Floor(intersectionPoint.Y))
-			// fmt.Println(colorAtUV)
+			var u, v = objectHit.ComputeUV(normal)
+			var colorAtUV = objectHit.GetMaterial().Texture.GetColor01AtUV(u, v)
+			// Add texture contribution if any
 			colorOnSurface = colorOnSurface.MulColor(colorAtUV)
-			// colorOnSurface = colorAtUV;
 		}
-
-		var normal = objectHit.ComputeNormalAtPoint(intersectionPoint)
-		normal.Normalize()
 
 		// Add Reflection		
 		var reflectionRefractionColorMix math3d.Color01;
