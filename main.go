@@ -38,35 +38,18 @@ var g_Lights = []math3d.Light{light, light2}
 var g_Camera math3d.Camera
 var g_Options Options
 
-/*
-	Finds, among all the objects in the scene, with which one there is the closest intersection (if any)
-*/
-func getIntersectionInfo(ray math3d.Ray) math3d.IntersectionInfo {
-	var intersectionInfo = math3d.IntersectionInfo{math.MaxFloat64, -1}
-	for index, sph := range g_VisibleObjects {
-		var currentIntersectionInfo math3d.IntersectionInfo
-		if sph.Intersect(ray, &currentIntersectionInfo) {
-			if currentIntersectionInfo.T < intersectionInfo.T {
-				intersectionInfo.T = currentIntersectionInfo.T
-				intersectionInfo.ObjectIndex = index
-			}
-		}
-	}
 
-	return intersectionInfo
-}
 
 func trace(ray math3d.Ray, contributionCoef float64, depth int) math3d.Color01 {
 	var finalColor math3d.Color01
 	// Find the closest object the ray intersects																														
-	var intersectionInfo = getIntersectionInfo(ray)
+	var intersectionInfo math3d.IntersectionInfo
+	intersectionInfo.GetIntersectionInfo(ray, g_VisibleObjects);
 
-	if intersectionInfo.ObjectIndex != -1 {
-		var objectHit = g_VisibleObjects[intersectionInfo.ObjectIndex]
-		var intersectionPoint = ray.VertexAt(intersectionInfo.T)
-		var normal = objectHit.ComputeNormalAtPoint(intersectionPoint)
-		normal.Normalize()
-
+	if intersectionInfo.ObjectHit != nil {
+		var objectHit = *intersectionInfo.ObjectHit
+		var normal = intersectionInfo.Normal
+		var intersectionPoint = intersectionInfo.IntersectionPoint
 
 		// Compute color at the surface
 		var colorOnSurface = objectHit.GetMaterial().SurfaceColor
