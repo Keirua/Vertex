@@ -1,11 +1,9 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"image/color"
 	"math"
-	"math/rand"
 	"math3d"
 )
 
@@ -17,11 +15,11 @@ const (
 	MAX_DEPTH                  = 2
 )
 
-var whiteMaterial = math3d.Material{math3d.Color01{0.8, 0.8, 0.8}, 0.5, 0.5}
-var redMaterial = math3d.Material{math3d.Color01{1, 0, 0}, 0.5, 1.1}
-var blueMaterial = math3d.Material{math3d.Color01{0, .5, 1}, 0.5, 0.5}
-var purpleMaterial = math3d.Material{math3d.Color01{0.65, .2, 0.97}, 0.5,0.5}
-var greenMaterial = math3d.Material{math3d.Color01{0.3, 0.9, 0.2}, 0.5,0.5}
+var whiteMaterial = math3d.Material{math3d.Color01{0.8, 0.8, 0.8}, 0.5}
+var redMaterial = math3d.Material{math3d.Color01{1, 0, 0}, 0.5}
+var blueMaterial = math3d.Material{math3d.Color01{0, .5, 1}, 0.5}
+var purpleMaterial = math3d.Material{math3d.Color01{0.65, .2, 0.97}, 0.5}
+var greenMaterial = math3d.Material{math3d.Color01{0.3, 0.9, 0.2}, 0.5}
 
 var sphereFloor = math3d.Sphere{math3d.Vertex{0, 10003, -20}, 10000.0, whiteMaterial}
 var sphere1 = math3d.Sphere{math3d.Vertex{4.0, -1, -5}, 2.0, redMaterial}
@@ -32,8 +30,9 @@ var sphere4 = math3d.Sphere{math3d.Vertex{-5.5, 0, -8}, 3, purpleMaterial}
 var light = math3d.Light{math3d.Vertex{3.0, -10, -10}, math3d.Color01{0.65, .6, 0.97}}
 var light2 = math3d.Light{math3d.Vertex{0, -5, 0}, math3d.Color01{0.87, 0.8, 0.97}}
 
-var g_Spheres = []math3d.Sphere{sphere2, sphere1, sphereFloor, sphere3, sphere4 /*, lightSphere*/}
-var g_Lights = []math3d.Light{/*light, */light2}
+var g_VisibleObjects []math3d.Hittable;
+
+var g_Lights = []math3d.Light{light, light2}
 var g_Camera math3d.Camera
 var g_Options Options
 
@@ -42,7 +41,7 @@ var g_Options Options
 */
 func getIntersectionInfo(ray math3d.Ray) math3d.IntersectionInfo {
 	var intersectionInfo = math3d.IntersectionInfo{math.MaxFloat64, -1}
-	for index, sph := range g_Spheres {
+	for index, sph := range g_VisibleObjects {
 		var currentIntersectionInfo math3d.IntersectionInfo
 		if sph.Intersect(ray, &currentIntersectionInfo) {
 			if currentIntersectionInfo.T < intersectionInfo.T {
@@ -62,13 +61,13 @@ func trace(ray math3d.Ray, contributionCoef float64, depth int) math3d.Color01 {
 
 	if intersectionInfo.ObjectIndex != -1 {
 		var reflectionRefractionColorMix math3d.Color01;
-		var objectHit = g_Spheres[intersectionInfo.ObjectIndex]
+		var objectHit = g_VisibleObjects[intersectionInfo.ObjectIndex]
 		var intersectionPoint = ray.VertexAt(intersectionInfo.T)
 		var normal = objectHit.ComputeNormalAtPoint(intersectionPoint)
 		normal.Normalize()
 
 		// Add Reflection		
-		var reflectionContributionCoef = contributionCoef * objectHit.Material.ReflectionCoef;
+		var reflectionContributionCoef = contributionCoef * objectHit.GetMaterial().ReflectionCoef;
 		
 		// Computes the reflection ray
 		var reflet float64 = 2.0 * (ray.Direction.Dot(normal));
@@ -76,7 +75,7 @@ func trace(ray math3d.Ray, contributionCoef float64, depth int) math3d.Color01 {
 		reflectedRay.Origin = intersectionPoint.Add(normal.Mulf(1e-4))
 		reflectedRay.Direction = ray.Direction.Substract(normal.Mulf(reflet))
 
-		if ((objectHit.Material.ReflectionCoef >0 ) && depth < g_Options.MaxDepth){
+		if ((objectHit.GetMaterial().ReflectionCoef >0 ) && depth < g_Options.MaxDepth){
 
 			var reflectionColor = trace(reflectedRay, reflectionContributionCoef, depth+1)
 
@@ -94,7 +93,7 @@ func trace(ray math3d.Ray, contributionCoef float64, depth int) math3d.Color01 {
 			}
 
 			var isInShadow bool = false
-			for _, currObject := range g_Spheres {
+			for _, currObject := range g_VisibleObjects {
 				var shadowIntersectionInfo math3d.IntersectionInfo
 				if currObject.Intersect(lightRay, &shadowIntersectionInfo) {
 					isInShadow = true
@@ -107,11 +106,10 @@ func trace(ray math3d.Ray, contributionCoef float64, depth int) math3d.Color01 {
 				var lambert float64 = lightRay.Direction.Dot(normal) * contributionCoef
 
 				// finalColor = finalColor + lambert * currentLight * currentMaterial
-				//finalColor = finalColor.AddColor(objectHit.Material.SurfaceColor.MulColor(currLight.Color).MulFloat(lambert))
-				finalColor = finalColor.AddColor(objectHit.Material.SurfaceColor.MulColor(currLight.Color).MulFloat(lambert))
+				finalColor = finalColor.AddColor(objectHit.GetMaterial().SurfaceColor.MulColor(currLight.Color).MulFloat(lambert))
 			} else {
 				// soften the shadow. Total hack, no solid mathematical foundation
-				finalColor = finalColor.AddColor(objectHit.Material.SurfaceColor.MulFloat(0.1))
+				finalColor = finalColor.AddColor(objectHit.GetMaterial().SurfaceColor.MulFloat(0.1))
 			}
 		}
 
@@ -153,28 +151,13 @@ func computeColorAtXY(x int, y int) color.RGBA {
 	return clampColor(finalColor).ToRGBA()
 }
 
-type Options struct {
-	Width             int
-	Height            int
-	Fov               float64
-	AntiAliasingLevel int
-	MaxDepth int
-	OutputFilename    string
-}
 
 func init() {
-	rand.Seed(42)
-
-	flag.IntVar(&g_Options.Width, "width", DEFAULT_WIDTH, "The output image's width")
-	flag.IntVar(&g_Options.Height, "height", DEFAULT_HEIGHT, "The output image's height")
-	flag.StringVar(&g_Options.OutputFilename, "output", "out.png", "The output filename")
-	flag.IntVar(&g_Options.AntiAliasingLevel, "as", DEFAULT_ANTIALIASING_LEVEL, "Antialiasing level")
-	flag.Float64Var(&g_Options.Fov, "fov", DEFAULT_FOV, "FOV, in degre")
-	flag.IntVar(&g_Options.MaxDepth, "depth", MAX_DEPTH, "max recursion")
-
-	flag.Parse()
+	g_Options.ParseCommandLineOptions();
 
 	g_Camera.Initialize(g_Options.Width, g_Options.Height, g_Options.Fov)
+
+	g_VisibleObjects = append(g_VisibleObjects, sphere2, sphere1, sphereFloor, sphere3, sphere4 /*, lightSphere*/)
 }
 
 func main() {
