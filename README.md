@@ -3,16 +3,27 @@ README.md
 # Todo
 
  [x] introduce basic algorithm
- [ ] Add save to PPM file format
- [x] introduce simple lighting
- [ ] add plane intersection
- [x] add reflection
- [ ] add refraction
- [x] add shadows
- [ ] load scene from file
  [x] antialiasing
+ [x] introduce simple lighting
+ [x] add shadows
+ [x] add reflection
  [x] command line parameters
-
+ [ ] Other intersections
+    [ ] Plane
+    [ ] Torus
+    [ ] Cylinder
+ [ ] Refraction
+ [ ] Texture mapping
+ [ ] Bump mapping 
+ [ ] Space partitionning
+ [ ] Displacement mapping
+ [ ] Generated textures (checkboard, perlin noise cool textures)
+ [ ] load scene from file (simple json ?)
+ [ ] Add save to PPM file format
+ [ ] Depth of field
+ [ ] Soft shadows
+ [ ] Better antialiasing (adaptative, poisson disk-based random sampling ?)
+ [ ] Metaballs. Just because metaballs
 
 Go further, to infinity and beyond !
 
