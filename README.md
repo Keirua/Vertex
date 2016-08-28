@@ -36,4 +36,3 @@ In order to generate the raytraced scene with 3x3 antialiasing, reflection with 
 For other parameters, get help with :
 
     ./Vertex --help 
-

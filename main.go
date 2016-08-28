@@ -16,12 +16,13 @@ const (
 )
 
 var checkboardTexture16 = math3d.CheckboardTexture{16,16}
+var imageTexture = math3d.FileTexture{"images/cropped-P1120606-small.jpg",nil}
 
 var whiteMaterial = math3d.Material{math3d.Color01{0.8, 0.8, 0.8}, 0.5, nil}
 var redMaterial = math3d.Material{math3d.Color01{1, 0, 0}, 0.5, nil}
 var blueMaterial = math3d.Material{math3d.Color01{0, .5, 1}, 0.5, nil}
 var purpleMaterial = math3d.Material{math3d.Color01{0.65, .2, 0.97}, 0.5, &checkboardTexture16}
-var greenMaterial = math3d.Material{math3d.Color01{0.3, 0.9, 0.2}, 0.5, nil}
+var greenMaterial = math3d.Material{math3d.Color01{0.3, 0.9, 0.2}, 0.5, &checkboardTexture16}
 
 var sphereFloor = math3d.Sphere{math3d.Vertex{0, 10003, -20}, 10000.0, whiteMaterial}
 var sphere1 = math3d.Sphere{math3d.Vertex{4.0, -1, -5}, 2.0, redMaterial}
@@ -39,7 +40,6 @@ var g_Camera math3d.Camera
 var g_Options Options
 
 
-
 func trace(ray math3d.Ray, contributionCoef float64, depth int) math3d.Color01 {
 	var finalColor math3d.Color01
 	// Find the closest object the ray intersects																														
@@ -53,10 +53,10 @@ func trace(ray math3d.Ray, contributionCoef float64, depth int) math3d.Color01 {
 
 		// Compute color at the surface
 		var colorOnSurface = objectHit.GetMaterial().SurfaceColor
+		// If there is a texture, we add it's contribution
 		if (objectHit.GetMaterial().Texture != nil) {
 			var u, v = objectHit.ComputeUV(normal)
 			var colorAtUV = objectHit.GetMaterial().Texture.GetColor01AtUV(u, v)
-			// Add texture contribution if any
 			colorOnSurface = colorOnSurface.MulColor(colorAtUV)
 		}
 
@@ -86,7 +86,7 @@ func trace(ray math3d.Ray, contributionCoef float64, depth int) math3d.Color01 {
 			if lightRay.Direction.Dot(normal) <= 0.0 {
 				continue
 			}
-
+			// Throw shadow rays to see if objects are blocking the light
 			var isInShadow bool = false
 			for _, currObject := range g_VisibleObjects {
 				var shadowIntersectionInfo math3d.IntersectionInfo
@@ -101,10 +101,10 @@ func trace(ray math3d.Ray, contributionCoef float64, depth int) math3d.Color01 {
 				var lambert float64 = lightRay.Direction.Dot(normal) * contributionCoef
 
 				// finalColor = finalColor + lambert * currentLight * currentMaterial
-				finalColor = finalColor.AddColor(colorOnSurface /*objectHit.GetMaterial().SurfaceColor*/.MulColor(currLight.Color).MulFloat(lambert))
+				finalColor = finalColor.AddColor(colorOnSurface.MulColor(currLight.Color).MulFloat(lambert))
 			} else {
 				// soften the shadow. Total hack, no solid mathematical foundation
-				finalColor = finalColor.AddColor(colorOnSurface /*objectHit.GetMaterial().SurfaceColor*/.MulFloat(0.1))
+				finalColor = finalColor.AddColor(colorOnSurface.MulFloat(0.1))
 			}
 		}
 
@@ -157,13 +157,12 @@ func init() {
 
 func main() {
 
+	imageTexture.Load()
+
 	image := generateImage(g_Options.Width, g_Options.Height, computeColorAtXY)
 	fmt.Println(g_Options)
 	SavePNG(image, g_Options.OutputFilename)
 
-	/*for i := 0; i < 16; i++ {
-		fmt.Println(i, checkboardTexture16.GetColor01AtUV(0,float64(float64(i)/16.0)))
-	}*/
 
 	fmt.Println("Success !")
 }
