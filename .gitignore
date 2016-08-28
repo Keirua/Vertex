@@ -1,5 +1,4 @@
-untitled.ppm
 *.png
+!out/*.png
 raytracer
 Vertex
-raytracer.txt
