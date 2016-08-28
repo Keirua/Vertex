@@ -68,14 +68,14 @@ func trace(ray math3d.Ray, contributionCoef float64, depth int) math3d.Color01 {
 		normal.Normalize()
 
 		// Add Reflection		
-		var reflectionContributionCoef = contributionCoef * objectHit.Material.ReflectionCoef;
+		/*var reflectionContributionCoef = contributionCoef * objectHit.Material.ReflectionCoef;
 		
 		// Computes the reflection ray
 		var reflet float64 = 2.0 * (ray.Direction.Dot(normal));
 		var reflectedRay math3d.Ray;
 		reflectedRay.Origin = intersectionPoint.Add(normal.Mulf(1e-4))
 		reflectedRay.Direction = ray.Direction.Substract(normal.Mulf(reflet))
-
+/*
 		if ((objectHit.Material.ReflectionCoef >0 || objectHit.Material.Transparency > 0.0 ) && depth < MAX_DEPTH){
 
 			var reflectionColor = trace(reflectedRay, reflectionContributionCoef, depth+1)
@@ -100,7 +100,7 @@ func trace(ray math3d.Ray, contributionCoef float64, depth int) math3d.Color01 {
 			var reflectionRefractionColorMix = reflectionColor.MulFloat(fresnelCoef).AddColor(refractionColor.MulFloat(1-fresnelCoef));
 
 			finalColor = objectHit.Material.SurfaceColor.AddColor(reflectionRefractionColorMix.MulFloat(reflectionContributionCoef))
-		}
+		}*/
 
 		// Add Lighting		
 		for _, currLight := range g_Lights {
@@ -126,6 +126,7 @@ func trace(ray math3d.Ray, contributionCoef float64, depth int) math3d.Color01 {
 				var lambert float64 = lightRay.Direction.Dot(normal) * contributionCoef
 
 				// finalColor = finalColor + lambert * currentLight * currentMaterial
+				//finalColor = finalColor.AddColor(objectHit.Material.SurfaceColor.MulColor(currLight.Color).MulFloat(lambert))
 				finalColor = finalColor.AddColor(objectHit.Material.SurfaceColor.MulColor(currLight.Color).MulFloat(lambert))
 			} else {
 				// soften the shadow. Total hack, no solid mathematical foundation
@@ -148,6 +149,7 @@ func computeColorAtXY(x int, y int) color.RGBA {
 	var finalColor math3d.Color01
 
 	var steps float64 = 1.0 / float64(g_Options.AntiAliasingLevel)
+	var rayContributionCoefficient float64 = 1.0 / float64(g_Options.AntiAliasingLevel*g_Options.AntiAliasingLevel);
 
 	// with 2x2 anti aliasing, for every point, we send 4 ray
 	// each one contributing to 1/4th of the final pixel color
@@ -160,7 +162,7 @@ func computeColorAtXY(x int, y int) color.RGBA {
 			var ray = g_Camera.ComputeRayDirection(float64(x)+i*steps, float64(y)+j*steps)
 			var tracedColor = trace(ray, 1.0, 0)
 
-			finalColor = finalColor.AddColor(tracedColor.MulFloat(steps * steps))
+			finalColor = finalColor.AddColor(tracedColor.MulFloat(rayContributionCoefficient))
 		}
 	}
 
