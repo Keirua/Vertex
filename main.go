@@ -14,11 +14,11 @@ const (
 	DEFAULT_HEIGHT             = 480
 	DEFAULT_FOV                = 30.0
 	DEFAULT_ANTIALIASING_LEVEL = 1 // minimum
-	MAX_DEPTH                  = 3
+	MAX_DEPTH                  = 2
 )
 
 var whiteMaterial = math3d.Material{math3d.Color01{0.8, 0.8, 0.8}, 0.5, 0.5}
-var redMaterial = math3d.Material{math3d.Color01{1, 0, 0}, 0.5, 0.5}
+var redMaterial = math3d.Material{math3d.Color01{1, 0, 0}, 0.5, 1.1}
 var blueMaterial = math3d.Material{math3d.Color01{0, .5, 1}, 0.5, 0.5}
 var purpleMaterial = math3d.Material{math3d.Color01{0.65, .2, 0.97}, 0.5,0.5}
 var greenMaterial = math3d.Material{math3d.Color01{0.3, 0.9, 0.2}, 0.5,0.5}
@@ -29,7 +29,6 @@ var sphere2 = math3d.Sphere{math3d.Vertex{0.0, 0, -15}, 4, greenMaterial}
 var sphere3 = math3d.Sphere{math3d.Vertex{3.0, 2, -10}, 3, blueMaterial}
 var sphere4 = math3d.Sphere{math3d.Vertex{-5.5, 0, -8}, 3, purpleMaterial}
 
-//var lightSphere = math3d.Sphere{math3d.Vertex{3.0, -3, -10}, 0.5, purpleMaterial}
 var light = math3d.Light{math3d.Vertex{3.0, -10, -10}, math3d.Color01{0.65, .6, 0.97}}
 var light2 = math3d.Light{math3d.Vertex{0, -5, 0}, math3d.Color01{0.87, 0.8, 0.97}}
 
@@ -62,45 +61,27 @@ func trace(ray math3d.Ray, contributionCoef float64, depth int) math3d.Color01 {
 	var intersectionInfo = getIntersectionInfo(ray)
 
 	if intersectionInfo.ObjectIndex != -1 {
+		var reflectionRefractionColorMix math3d.Color01;
 		var objectHit = g_Spheres[intersectionInfo.ObjectIndex]
 		var intersectionPoint = ray.VertexAt(intersectionInfo.T)
 		var normal = objectHit.ComputeNormalAtPoint(intersectionPoint)
 		normal.Normalize()
 
 		// Add Reflection		
-		/*var reflectionContributionCoef = contributionCoef * objectHit.Material.ReflectionCoef;
+		var reflectionContributionCoef = contributionCoef * objectHit.Material.ReflectionCoef;
 		
 		// Computes the reflection ray
 		var reflet float64 = 2.0 * (ray.Direction.Dot(normal));
 		var reflectedRay math3d.Ray;
 		reflectedRay.Origin = intersectionPoint.Add(normal.Mulf(1e-4))
 		reflectedRay.Direction = ray.Direction.Substract(normal.Mulf(reflet))
-/*
-		if ((objectHit.Material.ReflectionCoef >0 || objectHit.Material.Transparency > 0.0 ) && depth < MAX_DEPTH){
+
+		if ((objectHit.Material.ReflectionCoef >0 ) && depth < g_Options.MaxDepth){
 
 			var reflectionColor = trace(reflectedRay, reflectionContributionCoef, depth+1)
-			var refractionColor = math3d.Color01{}
 
-			if (objectHit.Material.Transparency > 0) { 
-				// Computes the refraction ray
-				var refractionRay math3d.Ray;
-	            var refractionIndex float64 = 1.1	// indice of refraction ! /!\ should be part of material
-	            var eta float64 = 1.0 / refractionIndex
-	            var cosi float64 = -normal.Dot(ray.Direction);  // requires normalized vectors
-	            var k float64 = 1 - eta * eta * (1 - cosi * cosi);
-
-	            refractionRay.Origin = intersectionPoint.Add(normal.Mulf(1e-4))
-	            refractionRay.Direction = ray.Direction.Mulf(eta).Add(normal.Mulf(eta *  cosi - math.Sqrt(k))); 
-	            refractionRay.Direction.Normalize(); 
-
-	            refractionColor = trace(refractionRay, reflectionContributionCoef, depth+1)
-	        }
-
-			var fresnelCoef = 0.8;
-			var reflectionRefractionColorMix = reflectionColor.MulFloat(fresnelCoef).AddColor(refractionColor.MulFloat(1-fresnelCoef));
-
-			finalColor = objectHit.Material.SurfaceColor.AddColor(reflectionRefractionColorMix.MulFloat(reflectionContributionCoef))
-		}*/
+			reflectionRefractionColorMix = reflectionColor;
+		}
 
 		// Add Lighting		
 		for _, currLight := range g_Lights {
@@ -130,10 +111,13 @@ func trace(ray math3d.Ray, contributionCoef float64, depth int) math3d.Color01 {
 				finalColor = finalColor.AddColor(objectHit.Material.SurfaceColor.MulColor(currLight.Color).MulFloat(lambert))
 			} else {
 				// soften the shadow. Total hack, no solid mathematical foundation
-				//finalColor = finalColor.AddColor(objectHit.Material.SurfaceColor.MulFloat(0.1))
+				finalColor = finalColor.AddColor(objectHit.Material.SurfaceColor.MulFloat(0.1))
 			}
 		}
+
+		finalColor = finalColor.AddColor(reflectionRefractionColorMix.MulFloat(reflectionContributionCoef))
 	}
+
 
 	return finalColor
 }
@@ -174,6 +158,7 @@ type Options struct {
 	Height            int
 	Fov               float64
 	AntiAliasingLevel int
+	MaxDepth int
 	OutputFilename    string
 }
 
@@ -183,8 +168,9 @@ func init() {
 	flag.IntVar(&g_Options.Width, "width", DEFAULT_WIDTH, "The output image's width")
 	flag.IntVar(&g_Options.Height, "height", DEFAULT_HEIGHT, "The output image's height")
 	flag.StringVar(&g_Options.OutputFilename, "output", "out.png", "The output filename")
-	flag.IntVar(&g_Options.AntiAliasingLevel, "as", DEFAULT_ANTIALIASING_LEVEL, "AntiAliasingLevel")
+	flag.IntVar(&g_Options.AntiAliasingLevel, "as", DEFAULT_ANTIALIASING_LEVEL, "Antialiasing level")
 	flag.Float64Var(&g_Options.Fov, "fov", DEFAULT_FOV, "FOV, in degre")
+	flag.IntVar(&g_Options.MaxDepth, "depth", MAX_DEPTH, "max recursion")
 
 	flag.Parse()
 

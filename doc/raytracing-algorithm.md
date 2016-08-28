@@ -11,3 +11,6 @@ In french, good and short introductory article :
 http://www.alrj.org/docs/3D/raytracer/raytracertutchap1.htm
 http://www.alrj.org/docs/3D/raytracer/raytracertutchap2.htm
 
+Some good ressources here as well :
+
+http://bentonian.com/teaching/AdvGraph1314/
