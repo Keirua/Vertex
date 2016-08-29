@@ -3,7 +3,6 @@ package main
 import (
     "os"
     "image"
-    //"fmt"    
     // We want to init the decoders  for png/jpg so that image file loading
     // works out of the box
     _ "image/png"
@@ -43,7 +42,6 @@ func (fileTexture *FileTexture) Load() {
     img1, _, _ := image.Decode(fImg1)
 
     fileTexture.Image = img1
-    //fmt.Println ("Load", img1.At(0,0))
 }
 
 func (fileTexture FileTexture) GetColor01AtUV(u float64, v float64) Color01 {
@@ -55,13 +53,7 @@ func (fileTexture FileTexture) GetColor01AtUV(u float64, v float64) Color01 {
     var yAtV int = int(v*float64(height))
 
     var colorRGBA = fileTexture.Image.At(xAtU, yAtV)
-/*
-    if (((xAtU + yAtV)%2) != 0){
-        return Color01{1,1,1}
-    }*/
     var R,G,B,_ = colorRGBA.RGBA()
 
-    var c = Color01{float64(R)/(255.0*255.0),float64(G)/(255.0*255.0),float64(B)/(255.0*255.0)}
-    //fmt.Println(R,G,B, c)
-    return c;
+    return Color01{float64(R)/(255.0*255.0),float64(G)/(255.0*255.0),float64(B)/(255.0*255.0)}
 }
