@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"image/color"
 	"math"
-	"math3d"
 )
 
 const (
@@ -15,35 +14,35 @@ const (
 	MAX_DEPTH                  = 2
 )
 
-var checkboardTexture16 = math3d.CheckboardTexture{16,16}
-var imageTexture = math3d.FileTexture{"images/cropped-P1120606-small.jpg",nil}
+var checkboardTexture16 = CheckboardTexture{16,16}
+var imageTexture = FileTexture{"images/cropped-P1120606-small.jpg",nil}
 
-var whiteMaterial = math3d.Material{math3d.Color01{0.8, 0.8, 0.8}, 0.5, nil}
-var redMaterial = math3d.Material{math3d.Color01{1, 0, 0}, 0.5, nil}
-var blueMaterial = math3d.Material{math3d.Color01{0, .5, 1}, 0.5, nil}
-var purpleMaterial = math3d.Material{math3d.Color01{0.65, .2, 0.97}, 0.5, &imageTexture}
-var greenMaterial = math3d.Material{math3d.Color01{0.3, 0.9, 0.2}, 0.5, &checkboardTexture16}
+var whiteMaterial = Material{Color01{0.8, 0.8, 0.8}, 0.5, nil}
+var redMaterial = Material{Color01{1, 0, 0}, 0.5, nil}
+var blueMaterial = Material{Color01{0, .5, 1}, 0.5, nil}
+var purpleMaterial = Material{Color01{0.65, .2, 0.97}, 0.5, &imageTexture}
+var greenMaterial = Material{Color01{0.3, 0.9, 0.2}, 0.5, &checkboardTexture16}
 
-var sphereFloor = math3d.Sphere{math3d.Vertex{0, 10003, -20}, 10000.0, whiteMaterial}
-var sphere1 = math3d.Sphere{math3d.Vertex{4.0, -1, -5}, 2.0, redMaterial}
-var sphere2 = math3d.Sphere{math3d.Vertex{0.0, 0, -15}, 4, greenMaterial}
-var sphere3 = math3d.Sphere{math3d.Vertex{3.0, 2, -10}, 3, blueMaterial}
-var sphere4 = math3d.Sphere{math3d.Vertex{-5.5, 0, -8}, 3, purpleMaterial}
+var sphereFloor = Sphere{Vertex{0, 10003, -20}, 10000.0, whiteMaterial}
+var sphere1 = Sphere{Vertex{4.0, -1, -5}, 2.0, redMaterial}
+var sphere2 = Sphere{Vertex{0.0, 0, -15}, 4, greenMaterial}
+var sphere3 = Sphere{Vertex{3.0, 2, -10}, 3, blueMaterial}
+var sphere4 = Sphere{Vertex{-5.5, 0, -8}, 3, purpleMaterial}
 
-var light = math3d.Light{math3d.Vertex{3.0, -10, -10}, math3d.Color01{0.65, .6, 0.97}}
-var light2 = math3d.Light{math3d.Vertex{0, -5, 0}, math3d.Color01{0.87, 0.8, 0.97}}
+var light = Light{Vertex{3.0, -10, -10}, Color01{0.65, .6, 0.97}}
+var light2 = Light{Vertex{0, -5, 0}, Color01{0.87, 0.8, 0.97}}
 
-var g_VisibleObjects []math3d.Hittable;
+var g_VisibleObjects []Hittable;
 
-var g_Lights = []math3d.Light{light, light2}
-var g_Camera math3d.Camera
+var g_Lights = []Light{light, light2}
+var g_Camera Camera
 var g_Options Options
 
 
-func trace(ray math3d.Ray, contributionCoef float64, depth int) math3d.Color01 {
-	var finalColor math3d.Color01
+func trace(ray Ray, contributionCoef float64, depth int) Color01 {
+	var finalColor Color01
 	// Find the closest object the ray intersects																														
-	var intersectionInfo math3d.IntersectionInfo
+	var intersectionInfo IntersectionInfo
 	intersectionInfo.GetIntersectionInfo(ray, g_VisibleObjects);
 
 	if intersectionInfo.ObjectHit != nil {
@@ -61,12 +60,12 @@ func trace(ray math3d.Ray, contributionCoef float64, depth int) math3d.Color01 {
 		}
 
 		// Add Reflection		
-		var reflectionRefractionColorMix math3d.Color01;
+		var reflectionRefractionColorMix Color01;
 		var reflectionContributionCoef = contributionCoef * objectHit.GetMaterial().ReflectionCoef;
 		
 		// Computes the reflection ray
 		var reflet float64 = 2.0 * (ray.Direction.Dot(normal));
-		var reflectedRay math3d.Ray;
+		var reflectedRay Ray;
 		reflectedRay.Origin = intersectionPoint.Add(normal.Mulf(1e-4))
 		reflectedRay.Direction = ray.Direction.Substract(normal.Mulf(reflet))
 
@@ -79,7 +78,7 @@ func trace(ray math3d.Ray, contributionCoef float64, depth int) math3d.Color01 {
 
 		// Add Lighting		
 		for _, currLight := range g_Lights {
-			var lightRay math3d.Ray
+			var lightRay Ray
 			lightRay.Origin = intersectionPoint
 			lightRay.Direction = currLight.Position.Substract(intersectionPoint)
 			lightRay.Direction.Normalize()
@@ -89,7 +88,7 @@ func trace(ray math3d.Ray, contributionCoef float64, depth int) math3d.Color01 {
 			// Throw shadow rays to see if objects are blocking the light
 			var isInShadow bool = false
 			for _, currObject := range g_VisibleObjects {
-				var shadowIntersectionInfo math3d.IntersectionInfo
+				var shadowIntersectionInfo IntersectionInfo
 				if currObject.Intersect(lightRay, &shadowIntersectionInfo) {
 					isInShadow = true
 					break
@@ -115,15 +114,15 @@ func trace(ray math3d.Ray, contributionCoef float64, depth int) math3d.Color01 {
 	return finalColor
 }
 
-func clampColor(c math3d.Color01) math3d.Color01 {
-	return math3d.Color01{
+func clampColor(c Color01) Color01 {
+	return Color01{
 		math.Min(1.0, math.Max(0.0, c.R)),
 		math.Min(1.0, math.Max(0.0, c.G)),
 		math.Min(1.0, math.Max(0.0, c.B))}
 }
 
 func computeColorAtXY(x int, y int) color.RGBA {
-	var finalColor math3d.Color01
+	var finalColor Color01
 
 	var steps float64 = 1.0 / float64(g_Options.AntiAliasingLevel)
 	var rayContributionCoefficient float64 = 1.0 / float64(g_Options.AntiAliasingLevel*g_Options.AntiAliasingLevel);
