@@ -19,7 +19,10 @@ README.md
  [ ] Bump mapping 
  [ ] Space partitionning
  [ ] Displacement mapping
- [ ] Cool generated textures (perlin noise cool stuff)
+ [x] Cool generated textures
+    [x] Perlin noise
+    [x] Wood
+    [x] Marble
  [ ] load scene from file (simple json ?)
  [ ] Add save to PPM file format
  [ ] Depth of field
