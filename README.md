@@ -1,34 +1,43 @@
-README.md
+Vertex is a work-in-progress raytracer writen in go.
 
-# Todo
+You have probably reached this place by accident : do not expect great code quality, I write this thing in order to learn the language.
 
- [x] introduce basic algorithm
- [x] antialiasing
- [x] introduce simple lighting
- [x] add shadows
- [x] add reflection
- [x] command line parameters
- [ ] Other intersections
-    [ ] Plane
-    [ ] Torus
-    [ ] Cylinder
- [ ] Refraction
- [x] Texture mapping
-    [x] File image
-    [x] Checkboard
- [ ] Bump mapping 
- [ ] Space partitionning
- [ ] Displacement mapping
- [x] Cool generated textures
-    [x] Perlin noise
-    [x] Wood
-    [x] Marble
- [ ] load scene from file (simple json ?)
- [ ] Add save to PPM file format
- [ ] Depth of field
- [ ] Soft shadows
- [ ] Better antialiasing (adaptative, poisson disk-based random sampling ?)
- [ ] Metaballs. Just because metaballs
+# Current result
+
+![Current status](out/7-out-marble-turbulence-depth1-as3.png)
+
+# Features/Todo
+
+The current image status can be seen in the [out](out) directory.
+
+ - [x] introduce basic algorithm
+ - [x] antialiasing
+ - [x] introduce simple lighting
+ - [x] add shadows
+ - [x] add reflection
+ - [x] command line parameters
+ - [ ] Other intersections
+   - [ ] Plane
+   - [ ] Torus
+   - [ ] Cylinder
+ - [ ] Refraction
+ - [ ] Better lighting (replace lambert by phong in order to have specular highlight)
+ - [x] Texture mapping
+   - [x] File image
+   - [x] Checkboard
+ - [ ] Bump mapping 
+ - [ ] Space partitionning
+ - [ ] Displacement mapping
+ - [x] Cool generated textures
+   - [x] Perlin noise
+   - [x] Wood
+   - [x] Marble
+ - [ ] load scene from file (simple json ?)
+ - [ ] Add save to PPM file format
+ - [ ] Depth of field
+ - [ ] Soft shadows
+ - [ ] Better antialiasing (adaptative, poisson disk-based random sampling ?)
+ - [ ] Metaballs. Just because metaballs
 
 Go further, to infinity and beyond !
 
