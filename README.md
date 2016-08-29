@@ -13,11 +13,13 @@ README.md
     [ ] Torus
     [ ] Cylinder
  [ ] Refraction
- [ ] Texture mapping
+ [x] Texture mapping
+    [x] File image
+    [x] Checkboard
  [ ] Bump mapping 
  [ ] Space partitionning
  [ ] Displacement mapping
- [ ] Generated textures (checkboard, perlin noise cool textures)
+ [ ] Cool generated textures (perlin noise cool stuff)
  [ ] load scene from file (simple json ?)
  [ ] Add save to PPM file format
  [ ] Depth of field
@@ -36,4 +38,3 @@ In order to generate the raytraced scene with 3x3 antialiasing, reflection with 
 For other parameters, get help with :
 
     ./Vertex --help 
-

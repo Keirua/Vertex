@@ -13,4 +13,14 @@ http://www.alrj.org/docs/3D/raytracer/raytracertutchap2.htm
 
 Some good ressources here as well :
 
-http://bentonian.com/teaching/AdvGraph1314/
+http://bentonian.com/teaching/AdvGraph1314
+
+
+
+About texturing (spherical/cylindrical mapping)
+
+http://web.cse.ohio-state.edu/~hwshen/681/Site/Slides_files/texture.pdf
+
+Texture generation using random noise
+
+http://lodev.org/cgtutor/randomnoise.html
