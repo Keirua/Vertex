@@ -17,16 +17,16 @@ const (
 var checkboardTexture16 = CheckboardTexture{16,16}
 var imageTexture = FileTexture{"images/cropped-P1120606-small.jpg",nil}
 
-//var turbulence = NewTurbulence(32)
-//var marble5 = NewMarble(5, 10, 5, 32)
-//var marble1 = NewMarble(5, 10, 1, 32)
+var turbulence = NewTurbulence(32)
+var marble5 = NewMarble(5, 10, 5, 32)
+var marble1 = NewMarble(5, 10, 1, 32)
 var wood = NewWood(12, 0.1, 32)
 
 var whiteMaterial = Material{Color01{0.8, 0.8, 0.8}, 0.5, nil}
-var redMaterial = Material{Color01{1, 0, 0}, 0.5, wood}
-var blueMaterial = Material{Color01{0, .5, 1}, 0.5, nil}
-var purpleMaterial = Material{Color01{0.65, .2, 0.97}, 0.5, &imageTexture}
-var greenMaterial = Material{Color01{0.3, 0.9, 0.2}, 0.5, &checkboardTexture16}
+var redMaterial = Material{Color01{1, 0, 0}, 0.5, nil}
+var blueMaterial = Material{Color01{0, .5, 1}, 0.5, marble5}
+var purpleMaterial = Material{Color01{0.65, .2, 0.97}, 0.5, &checkboardTexture16}
+var greenMaterial = Material{Color01{0.3, 0.9, 0.2}, 0.5, turbulence}
 
 var sphereFloor = Sphere{Vertex{0, 10003, -20}, 10000.0, whiteMaterial}
 var sphere1 = Sphere{Vertex{4.0, -1, -5}, 2.0, redMaterial}

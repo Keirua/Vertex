@@ -67,12 +67,13 @@ func (noise *Noise) SmoothNoise(x float64, y float64) float64 {
     return value
 }
 
-func (noise *Noise) At(i int, j int) float64 {
-    return noise.noise[j][i];
+func (noise *Noise) At(i float64, j float64) float64 {
+    //return noise.SmoothNoise(i,j)
+    return noise.noise[int(j)][int(i)];
 }
 
 func (noise *Noise) GetColor01AtUV(u float64, v float64) Color01 {
-    var c =  noise.At(int(u*256.0), int(v*256))
+    var c =  noise.At(u*256.0, v*256.0)
     return Color01{c,c,c}
 }
 
