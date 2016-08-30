@@ -12,8 +12,8 @@ func (sphere Sphere) GetMaterial() Material {
     return sphere.Material;
 }
 
-func (sphere Sphere) ComputeNormalAtPoint(pointHit Vertex) Vertex {
-    return pointHit.Substract(sphere.Center)
+func (sphere Sphere) ComputeNormalAtIntersectionPoint(info *IntersectionInfo) Vertex {
+    return info.IntersectionPoint.Substract(sphere.Center)
 }
 
 

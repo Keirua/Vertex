@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"image/color"
 	"math"
+	"runtime/pprof"
+	"os"
+	"log"
 )
 
 const (
@@ -23,12 +26,14 @@ var marble1 = NewMarble(5, 10, 1, 32)
 var wood = NewWood(12, 0.1, 32)
 
 var whiteMaterial = Material{Color01{0.8, 0.8, 0.8}, 0.5, nil}
+var whiteMaterial2 = Material{Color01{0.8, 0.8, 0.8}, 0.8, nil}
 var redMaterial = Material{Color01{1, 0, 0}, 0.5, nil}
 var blueMaterial = Material{Color01{0, .5, 1}, 0.5, marble5}
 var purpleMaterial = Material{Color01{0.65, .2, 0.97}, 0.5, &checkboardTexture16}
 var greenMaterial = Material{Color01{0.3, 0.9, 0.2}, 0.5, turbulence}
 
-var sphereFloor = Sphere{Vertex{0, 10003, -20}, 10000.0, whiteMaterial}
+// var sphereFloor = Sphere{Vertex{0, 10003, -20}, 10000.0, whiteMaterial}
+var planeFloor = Plane{ Vertex{0,1.5,0}, Vertex{0,1,0}, whiteMaterial2} // Todo: add NewPlane and normalize
 var sphere1 = Sphere{Vertex{4.0, -1, -5}, 2.0, redMaterial}
 var sphere2 = Sphere{Vertex{0.0, 0, -15}, 4, greenMaterial}
 var sphere3 = Sphere{Vertex{3.0, 2, -10}, 3, blueMaterial}
@@ -48,7 +53,7 @@ func trace(ray Ray, contributionCoef float64, depth int) Color01 {
 	var finalColor Color01
 	// Find the closest object the ray intersects																														
 	var intersectionInfo IntersectionInfo
-	intersectionInfo.GetIntersectionInfo(ray, g_VisibleObjects);
+	intersectionInfo.GetIntersectionInfo(ray, &g_VisibleObjects);
 
 	if intersectionInfo.ObjectHit != nil {
 		var objectHit = *intersectionInfo.ObjectHit
@@ -156,11 +161,23 @@ func init() {
 
 	g_Camera.Initialize(g_Options.Width, g_Options.Height, g_Options.Fov)
 
-	g_VisibleObjects = append(g_VisibleObjects, sphere2, sphere1, sphereFloor, sphere3, sphere4 /*, lightSphere*/)
+	g_VisibleObjects = append(g_VisibleObjects, sphere2, sphere1, planeFloor/*sphereFloor*/, sphere3, sphere4 /*, lightSphere*/)
 	imageTexture.Load()
 }
 
 func main() {
+	//var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
+
+    if g_Options.CpuProfileFilename != "" {
+        f, err := os.Create(g_Options.CpuProfileFilename)
+        if err != nil {
+            log.Fatal(err)
+        }
+        pprof.StartCPUProfile(f)
+        defer pprof.StopCPUProfile()
+    }
+
+
 	image := generateImage(g_Options.Width, g_Options.Height, computeColorAtXY)
 	fmt.Println(g_Options)
 	SavePNG(image, g_Options.OutputFilename)

@@ -11,6 +11,7 @@ type Options struct {
     AntiAliasingLevel int
     MaxDepth int
     OutputFilename    string
+    CpuProfileFilename string
 }
 
 func (options *Options) ParseCommandLineOptions() {
@@ -20,6 +21,7 @@ func (options *Options) ParseCommandLineOptions() {
     flag.IntVar(&options.AntiAliasingLevel, "as", DEFAULT_ANTIALIASING_LEVEL, "Antialiasing level")
     flag.Float64Var(&options.Fov, "fov", DEFAULT_FOV, "FOV, in degre")
     flag.IntVar(&options.MaxDepth, "depth", MAX_DEPTH, "max recursion")
+    flag.StringVar(&options.CpuProfileFilename, "cpuprofile", "", "cpu profile for debug")
 
     flag.Parse()
 }
