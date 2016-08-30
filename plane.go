@@ -5,10 +5,10 @@ import "math"
 type Plane struct {
     Point   Vertex          // A point on the place
     Normal  Vertex
-    Material Material
+    Material *Material
 }
 
-func (plane Plane) GetMaterial() Material {
+func (plane Plane) GetMaterial() *Material {
     return plane.Material;
 }
 

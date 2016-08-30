@@ -5,10 +5,10 @@ import "math"
 type Sphere struct {
 	Center   Vertex
 	Radius   float64
-	Material Material
+	Material *Material
 }
 
-func (sphere Sphere) GetMaterial() Material {
+func (sphere Sphere) GetMaterial() *Material {
     return sphere.Material;
 }
 

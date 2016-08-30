@@ -26,18 +26,18 @@ var marble1 = NewMarble(5, 10, 1, 32)
 var wood = NewWood(12, 0.1, 32)
 
 var whiteMaterial = Material{Color01{0.8, 0.8, 0.8}, 0.5, nil}
-var whiteMaterial2 = Material{Color01{0.8, 0.8, 0.8}, 0.8, nil}
+var whiteMaterial2 = Material{Color01{0.8, 0.8, 0.8}, 0.5, nil}
 var redMaterial = Material{Color01{1, 0, 0}, 0.5, nil}
 var blueMaterial = Material{Color01{0, .5, 1}, 0.5, marble5}
 var purpleMaterial = Material{Color01{0.65, .2, 0.97}, 0.5, &checkboardTexture16}
 var greenMaterial = Material{Color01{0.3, 0.9, 0.2}, 0.5, turbulence}
 
-// var sphereFloor = Sphere{Vertex{0, 10003, -20}, 10000.0, whiteMaterial}
-var planeFloor = Plane{ Vertex{0,1.5,0}, Vertex{0,1,0}, whiteMaterial2} // Todo: add NewPlane and normalize
-var sphere1 = Sphere{Vertex{4.0, -1, -5}, 2.0, redMaterial}
-var sphere2 = Sphere{Vertex{0.0, 0, -15}, 4, greenMaterial}
-var sphere3 = Sphere{Vertex{3.0, 2, -10}, 3, blueMaterial}
-var sphere4 = Sphere{Vertex{-5.5, 0, -8}, 3, purpleMaterial}
+var sphereFloor = Sphere{Vertex{0, 10003, -20}, 10000.0, &whiteMaterial}
+var planeFloor = Plane{ Vertex{0,1.5,0}, Vertex{0,1,0}, &whiteMaterial2} // Todo: add NewPlane and normalize
+var sphere1 = Sphere{Vertex{4.0, -1, -5}, 2.0, &redMaterial}
+var sphere2 = Sphere{Vertex{0.0, 0, -15}, 4, &greenMaterial}
+var sphere3 = Sphere{Vertex{3.0, 2, -10}, 3, &blueMaterial}
+var sphere4 = Sphere{Vertex{-5.5, 0, -8}, 3, &purpleMaterial}
 
 var light = Light{Vertex{3.0, -10, -10}, Color01{0.65, .6, 0.97}}
 var light2 = Light{Vertex{0, -5, 0}, Color01{0.87, 0.8, 0.97}}
@@ -62,13 +62,14 @@ func trace(ray Ray, contributionCoef float64, depth int) Color01 {
 
 		// Compute color at the surface
 		var colorOnSurface = objectHit.GetMaterial().SurfaceColor
+
 		// If there is a texture, we add it's contribution
 		if (objectHit.GetMaterial().Texture != nil) {
 			var u, v = objectHit.ComputeUV(normal)
 			var colorAtUV = objectHit.GetMaterial().Texture.GetColor01AtUV(u, v)
 			colorOnSurface = colorOnSurface.MulColor(colorAtUV)
 		}
-
+		
 		// Add Reflection		
 		var reflectionRefractionColorMix Color01;
 		var reflectionContributionCoef = contributionCoef * objectHit.GetMaterial().ReflectionCoef;
@@ -104,7 +105,7 @@ func trace(ray Ray, contributionCoef float64, depth int) Color01 {
 					break
 				}
 			}
-
+			
 			if !isInShadow {
 				// lambert contribution
 				var lambert float64 = lightRay.Direction.Dot(normal) * contributionCoef
@@ -116,10 +117,9 @@ func trace(ray Ray, contributionCoef float64, depth int) Color01 {
 				finalColor = finalColor.AddColor(colorOnSurface.MulFloat(0.1))
 			}
 		}
-		//finalColor = colorOnSurface
+
 		finalColor = finalColor.AddColor(reflectionRefractionColorMix.MulFloat(reflectionContributionCoef))
 	}
-
 
 	return finalColor
 }
@@ -161,7 +161,9 @@ func init() {
 
 	g_Camera.Initialize(g_Options.Width, g_Options.Height, g_Options.Fov)
 
-	g_VisibleObjects = append(g_VisibleObjects, sphere2, sphere1, planeFloor/*sphereFloor*/, sphere3, sphere4 /*, lightSphere*/)
+	//g_VisibleObjects = append(g_VisibleObjects, sphere2, sphere1, planeFloor/*sphereFloor*/, sphere3, sphere4 /*, lightSphere*/)
+	g_VisibleObjects = append(g_VisibleObjects, sphere2, planeFloor)
+	//g_VisibleObjects = append(g_VisibleObjects, sphere2, sphereFloor)
 	imageTexture.Load()
 }
 
