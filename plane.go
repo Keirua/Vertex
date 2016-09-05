@@ -22,14 +22,17 @@ func (plane Plane) ComputeNormalAtIntersectionPoint (info *IntersectionInfo) Ver
 
 func (plane Plane) Intersect(ray Ray, info *IntersectionInfo) bool {
     var normalAndDirectionDotProduct = plane.Normal.Dot(ray.Direction)
-    if (normalAndDirectionDotProduct <= 0.0) {
+
+    if (normalAndDirectionDotProduct == 0.0) {
         return false;
     }
 
-    var D = -plane.Normal.Dot(plane.Point)
-    var rayO = ray.Origin.Substract (plane.Point);
+    var t = plane.Normal.Dot ( plane.Point.Substract (ray.Origin) ) / normalAndDirectionDotProduct
+    if (t < 0) {
+        return false
+    }
+    info.T = t
 
-    info.T = -((plane.Normal.Dot(rayO) + D) / (normalAndDirectionDotProduct))
 
     return true;
 }
