@@ -1,6 +1,6 @@
 package main
 
 type Light struct {
-    Position    Vertex
-    Color       Color01
+	Position Vertex
+	Color    Color01
 }
