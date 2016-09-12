@@ -25,11 +25,11 @@ var marble5 = NewMarble(5, 10, 5, 32)
 var marble1 = NewMarble(5, 10, 1, 32)
 var wood = NewWood(12, 0.1, 32)
 
-var whiteMaterial = Material{Color01{0.8, 0.8, 0.8}, 0.5, nil}
-var redMaterial = Material{Color01{1, 0, 0}, 0.5, nil}
-var blueMaterial = Material{Color01{0, .5, 1}, 0.5, marble5}
-var purpleMaterial = Material{Color01{0.65, .2, 0.97}, 0.5, &checkboardTexture16}
-var greenMaterial = Material{Color01{0.3, 0.9, 0.2}, 0.5, turbulence}
+var whiteMaterial = Material{Color01{0.8, 0.8, 0.8}, 0.5, nil, Color01{0.8, 0.8, 0.8}, 60}
+var redMaterial = Material{Color01{1, 0, 0}, 0.5, nil, Color01{0.8, 0.8, 0.8}, 50}
+var blueMaterial = Material{Color01{0, .5, 1}, 0.5, marble5, Color01{0.3, 0.3, 0.3}, 60}
+var purpleMaterial = Material{Color01{0.65, .2, 0.97}, 0.5, &checkboardTexture16, Color01{0.8, 0.8, 0.8}, 60}
+var greenMaterial = Material{Color01{0.3, 0.9, 0.2}, 0.5, turbulence, Color01{0.8, 0.8, 0.8}, 60}
 
 var sphereFloor = Sphere{Vertex{0, 10003, -20}, 10000.0, &whiteMaterial}
 var planeFloor = Plane{Vertex{0, 1, 0}, Vertex{0,-1,0}, &whiteMaterial}
@@ -107,11 +107,21 @@ func trace(ray Ray, contributionCoef float64, depth int) Color01 {
 			}
 			
 			if !isInShadow {
+				// blinn-phong contribution (for the specular highlights)
+				var blinnDirection = lightRay.Direction.Substract (ray.Direction);
+				blinnDirection.Normalize();
+
+				var blinnCoef = math.Max(0.0, blinnDirection.Dot(normal))
+				var blinn = objectHit.GetMaterial().SpecularColor.MulFloat(math.Pow(blinnCoef , objectHit.GetMaterial().SpecularPower) * contributionCoef);
+				finalColor = finalColor.AddColor(blinn.MulColor(currLight.Color))
+		
+				
 				// lambert contribution
 				var lambert float64 = lightRay.Direction.Dot(normal) * contributionCoef
 
 				// finalColor = finalColor + lambert * currentLight * currentMaterial
 				finalColor = finalColor.AddColor(colorOnSurface.MulColor(currLight.Color).MulFloat(lambert))
+				
 			} else {
 				// soften the shadow. Total hack, no solid mathematical foundation
 				finalColor = finalColor.AddColor(colorOnSurface.MulFloat(0.1))
@@ -161,8 +171,8 @@ func init() {
 
 	g_Camera.Initialize(g_Options.Width, g_Options.Height, g_Options.Fov)
 
-	//g_VisibleObjects = append(g_VisibleObjects, sphere2, sphere1, sphereFloor, sphere3, sphere4 /*, lightSphere*/)
-	g_VisibleObjects = append(g_VisibleObjects, sphere2, sphere1, planeFloor, sphere3, sphere4 /*, lightSphere*/)
+	g_VisibleObjects = append(g_VisibleObjects, sphere2, sphere1, sphereFloor, sphere3, sphere4 /*, lightSphere*/)
+	//g_VisibleObjects = append(g_VisibleObjects, sphere2, sphere1, planeFloor, sphere3, sphere4 /*, lightSphere*/)
 	//g_VisibleObjects = append(g_VisibleObjects, sphere2, planeFloor)
 	//g_VisibleObjects = append(g_VisibleObjects, sphere2, sphereFloor)
 	imageTexture.Load()

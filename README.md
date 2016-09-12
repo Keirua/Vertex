@@ -4,7 +4,7 @@ You have probably reached this place by accident : do not expect great code qual
 
 # Current result
 
-![Current status](out/7-out-marble-turbulence-depth1-as3.png)
+![Current status](out/8-out-blinnphong-specular-hightlights-depth1-as3.png)
 
 # Features/Todo
 
@@ -21,7 +21,8 @@ The current image status can be seen in the [out](out) directory.
    - [ ] Torus
    - [ ] Cylinder
  - [ ] Refraction
- - [ ] Better lighting (replace lambert by phong in order to have specular highlight)
+ - [x] Lambert shading
+ - [x] Blinn phong for specular highlights (pretty costly)
  - [x] Texture mapping
    - [x] File image
    - [x] Checkboard
