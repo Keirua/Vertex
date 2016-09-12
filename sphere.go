@@ -9,13 +9,12 @@ type Sphere struct {
 }
 
 func (sphere Sphere) GetMaterial() *Material {
-    return sphere.Material;
+	return sphere.Material
 }
 
 func (sphere Sphere) ComputeNormalAtIntersectionPoint(info *IntersectionInfo) Vertex {
-    return info.IntersectionPoint.Substract(sphere.Center)
+	return info.IntersectionPoint.Substract(sphere.Center)
 }
-
 
 func (sphere Sphere) Intersect(ray Ray, info *IntersectionInfo) bool {
 	var l Vertex = sphere.Center.Substract(ray.Origin)
@@ -37,15 +36,15 @@ func (sphere Sphere) Intersect(ray Ray, info *IntersectionInfo) bool {
 }
 
 /*
-    The normal must be normalized
+   The normal must be normalized
 */
 func (sphere Sphere) ComputeUV(normal Vertex) (float64, float64) {
-    /*
-    u = 0.5 + arctan2(dz, dx) / (2*pi)
-    v = 0.5 - arcsin(dy) / pi
-    */
-    var u = 0.5 + (math.Atan2(normal.Z, normal.X) / (2*math.Pi))
-    var v = 0.5 - (math.Asin(normal.Y) / math.Pi)
+	/*
+	   u = 0.5 + arctan2(dz, dx) / (2*pi)
+	   v = 0.5 - arcsin(dy) / pi
+	*/
+	var u = 0.5 + (math.Atan2(normal.Z, normal.X) / (2 * math.Pi))
+	var v = 0.5 - (math.Asin(normal.Y) / math.Pi)
 
-    return u, v;
+	return u, v
 }
