@@ -132,11 +132,20 @@ func trace(ray Ray, contributionCoef float64, depth int) Color01 {
 	return finalColor
 }
 
+func clampMinMax(v float64) float64{
+	return math.Min(1.0, math.Max(0.0, v))
+}
+
+func clampExp(v float64) float64{
+	var coef float64 = -2.0
+	return 1-math.Exp(v*coef)
+}
+
 func clampColor(c Color01) Color01 {
 	return Color01{
-		math.Min(1.0, math.Max(0.0, c.R)),
-		math.Min(1.0, math.Max(0.0, c.G)),
-		math.Min(1.0, math.Max(0.0, c.B))}
+		clampExp(c.R),
+		clampExp(c.G),
+		clampExp(c.B)}
 }
 
 func computeColorAtXY(x int, y int) color.RGBA {

@@ -4,7 +4,7 @@ You have probably reached this place by accident : do not expect great code qual
 
 # Current result
 
-![Current status](out/8-out-blinnphong-specular-hightlights-depth1-as3.png)
+![Current status](out/9-out-exponential-exposure--1.66-depth1-as3.png)
 
 # Features/Todo
 
@@ -23,16 +23,19 @@ The current image status can be seen in the [out](out) directory.
  - [ ] Refraction
  - [x] Lambert shading
  - [x] Blinn phong for specular highlights (pretty costly)
+ - [x] Exposure correction 
+   - [ ] should be configurable (cli options or configuration file)
+   - [ ] add possibility to choose between the different exposure methods
  - [x] Texture mapping
    - [x] File image
    - [x] Checkboard
- - [ ] Bump mapping 
- - [ ] Space partitionning
- - [ ] Displacement mapping
  - [x] Cool generated textures
    - [x] Perlin noise
    - [x] Wood
    - [x] Marble
+ - [ ] Bump mapping 
+ - [ ] Displacement mapping
+ - [ ] Space partitionning
  - [ ] load scene from file (simple json ?)
  - [ ] Add save to PPM file format
  - [ ] Depth of field
