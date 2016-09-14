@@ -5,7 +5,6 @@ import (
 	"image/color"
 	"log"
 	"math"
-	"math/rand"
 	"os"
 	"runtime/pprof"
 )
@@ -48,10 +47,101 @@ var g_Lights = []Light{light, light2}
 var g_Camera Camera
 var g_Options Options
 
-var g_ClampMethod = ClampExponential{-1.5}
+var g_ClampMethod = ClampExponential{-1.66}
+
+func ComputeColorOnSurface(objectHit Hittable, intersectionInfo IntersectionInfo) Color01{
+	// Compute color at the surface of the object hit
+	var colorOnSurface = objectHit.GetMaterial().SurfaceColor
+
+	// If there is a texture, we add it's contribution
+	if objectHit.GetMaterial().Texture != nil {
+		var u, v = objectHit.ComputeUV(intersectionInfo.Normal)
+		var colorAtUV = objectHit.GetMaterial().Texture.GetColor01AtUV(u, v)
+		colorOnSurface = colorOnSurface.MulColor(colorAtUV)
+	}
+
+	return colorOnSurface
+}
+
+func computeReflectionContribution(material *Material,
+	intersectionInfo IntersectionInfo, ray Ray, contributionCoef float64, depth int) (Color01, float64) { 
+	var normal = intersectionInfo.Normal
+
+	// Add Reflection
+	var reflectionRefractionColorMix Color01
+	var reflectionContributionCoef = contributionCoef * material.ReflectionCoef
+
+	// Computes the reflection ray
+	var reflet float64 = 2.0 * (ray.Direction.Dot(normal))
+	var reflectedRay Ray
+	reflectedRay.Origin = intersectionInfo.IntersectionPoint.Add(normal.Mulf(1e-4))
+	reflectedRay.Direction = ray.Direction.Substract(normal.Mulf(reflet))
+
+	if (material.ReflectionCoef > 0) && depth < g_Options.MaxDepth {
+
+		var reflectionColor = trace(reflectedRay, reflectionContributionCoef, depth+1)
+
+		reflectionRefractionColorMix = reflectionColor
+	}
+
+	return reflectionRefractionColorMix, reflectionContributionCoef
+}
+
+func isObjectInShadow (lightRay Ray) bool {
+	// Throw shadow rays to see if objects are blocking the light
+	var isInShadow bool = false
+	for _, currObject := range g_VisibleObjects {
+		var shadowIntersectionInfo IntersectionInfo
+		if currObject.Intersect(lightRay, &shadowIntersectionInfo) {
+			isInShadow = true
+			break
+		}
+	}
+
+	return isInShadow
+}
+
+func computeLightContribution (currLight Light, intersectionInfo *IntersectionInfo, contributionCoef float64, ray Ray, colorOnSurface Color01) Color01 {
+	var material = (*intersectionInfo.ObjectHit).GetMaterial()
+	var normal = intersectionInfo.Normal
+	var intersectionPoint = intersectionInfo.IntersectionPoint
+
+	var currLightColorContribution Color01
+
+	for i := 0; i < g_Options.NumSoftShadowRays; i++ {
+		var lightRay = currLight.generateLightRay(intersectionPoint, g_Options.SoftShadowStrength)
+
+		if lightRay.Direction.Dot(normal) <= 0.0 {
+			continue
+		}
+
+		if !isObjectInShadow(lightRay) {
+			// blinn-phong contribution (for the specular highlights)
+			var blinnDirection = lightRay.Direction.Substract(ray.Direction)
+			blinnDirection.Normalize()
+
+			var blinnCoef = math.Max(0.0, blinnDirection.Dot(normal))
+			var blinn = material.SpecularColor.MulFloat(math.Pow(blinnCoef, material.SpecularPower) * contributionCoef)
+			var specularContribution = blinn.MulColor(currLight.Color)
+			currLightColorContribution = currLightColorContribution.AddColor(specularContribution)
+
+			// lambert contribution
+			var lambertCoef float64 = lightRay.Direction.Dot(normal) * contributionCoef
+
+			var lambertContribution = colorOnSurface.MulColor(currLight.Color).MulFloat(lambertCoef)
+			currLightColorContribution = currLightColorContribution.AddColor(lambertContribution)
+
+		} else {
+			// soften the shadow. Total hack, no solid mathematical foundation
+			// Should actually use the ambiant color
+			currLightColorContribution = currLightColorContribution.AddColor(colorOnSurface.MulFloat(0.1))
+		}
+	}
+
+	return currLightColorContribution.MulFloat(1.0 / float64(g_Options.NumSoftShadowRays))
+}
 
 func trace(ray Ray, contributionCoef float64, depth int) Color01 {
-	//fmt.Println(ray)
 	var finalColor Color01
 	// Find the closest object the ray intersects
 	var intersectionInfo IntersectionInfo
@@ -59,103 +149,28 @@ func trace(ray Ray, contributionCoef float64, depth int) Color01 {
 
 	if intersectionInfo.ObjectHit != nil {
 		var objectHit = *intersectionInfo.ObjectHit
-		var normal = intersectionInfo.Normal
-		var intersectionPoint = intersectionInfo.IntersectionPoint
 
-		// Compute color at the surface
-		var colorOnSurface = objectHit.GetMaterial().SurfaceColor
+		// Compute initial object color
+		var colorOnSurface = ComputeColorOnSurface(objectHit, intersectionInfo)
 
-		// If there is a texture, we add it's contribution
-		if objectHit.GetMaterial().Texture != nil {
-			var u, v = objectHit.ComputeUV(normal)
-			var colorAtUV = objectHit.GetMaterial().Texture.GetColor01AtUV(u, v)
-			colorOnSurface = colorOnSurface.MulColor(colorAtUV)
-		}
-
-		// Add Reflection
-		var reflectionRefractionColorMix Color01
-		var reflectionContributionCoef = contributionCoef * objectHit.GetMaterial().ReflectionCoef
-
-		// Computes the reflection ray
-		var reflet float64 = 2.0 * (ray.Direction.Dot(normal))
-		var reflectedRay Ray
-		reflectedRay.Origin = intersectionPoint.Add(normal.Mulf(1e-4))
-		reflectedRay.Direction = ray.Direction.Substract(normal.Mulf(reflet))
-
-		if (objectHit.GetMaterial().ReflectionCoef > 0) && depth < g_Options.MaxDepth {
-
-			var reflectionColor = trace(reflectedRay, reflectionContributionCoef, depth+1)
-
-			reflectionRefractionColorMix = reflectionColor
-		}
+		// Compute reflection
+		var reflectionRefractionColorMix, reflectionContributionCoef = computeReflectionContribution(
+				objectHit.GetMaterial(),
+				intersectionInfo,
+				ray,
+				contributionCoef, depth)
+		
+		finalColor = finalColor.AddColor(reflectionRefractionColorMix.MulFloat(reflectionContributionCoef))
 
 		// Add Lighting
 		for _, currLight := range g_Lights {
-			var lightRay Ray
-			var currLightColorContribution Color01
-
-			// if no soft shadows : num = 1, strength = 0
-			// if soft shadows : num = 16, strength = 0.2 for instance
-			var numSoftShadowLights int = 16
-			var softShadowStrength float64 = 0.2
-
-			for i := 0; i < numSoftShadowLights; i++ {
-				lightRay.Origin = intersectionPoint
-				lightRay.Origin.X += (rand.Float64()*2.0 - 1.0) * softShadowStrength
-				lightRay.Origin.Y += (rand.Float64()*2.0 - 1.0) * softShadowStrength
-				lightRay.Origin.Z += (rand.Float64()*2.0 - 1.0) * softShadowStrength
-
-				lightRay.Direction = currLight.Position.Substract(intersectionPoint)
-				lightRay.Direction.Normalize()
-				if lightRay.Direction.Dot(normal) <= 0.0 {
-					continue
-				}
-				// Throw shadow rays to see if objects are blocking the light
-				var isInShadow bool = false
-				for _, currObject := range g_VisibleObjects {
-					var shadowIntersectionInfo IntersectionInfo
-					if currObject.Intersect(lightRay, &shadowIntersectionInfo) {
-						isInShadow = true
-						break
-					}
-				}
-
-				if !isInShadow {
-					// blinn-phong contribution (for the specular highlights)
-					var blinnDirection = lightRay.Direction.Substract(ray.Direction)
-					blinnDirection.Normalize()
-
-					var blinnCoef = math.Max(0.0, blinnDirection.Dot(normal))
-					var blinn = objectHit.GetMaterial().SpecularColor.MulFloat(math.Pow(blinnCoef, objectHit.GetMaterial().SpecularPower) * contributionCoef)
-					currLightColorContribution = currLightColorContribution.AddColor(blinn.MulColor(currLight.Color))
-
-					// lambert contribution
-					var lambert float64 = lightRay.Direction.Dot(normal) * contributionCoef
-
-					// currLightColorContribution = currLightColorContribution + lambert * currentLight * currentMaterial
-					currLightColorContribution = currLightColorContribution.AddColor(colorOnSurface.MulColor(currLight.Color).MulFloat(lambert))
-
-				} else {
-					// soften the shadow. Total hack, no solid mathematical foundation
-					// Should actually use the ambiant color
-					currLightColorContribution = currLightColorContribution.AddColor(colorOnSurface.MulFloat(0.1))
-				}
-			}
-
-			finalColor = finalColor.AddColor(currLightColorContribution.MulFloat(1.0 / float64(numSoftShadowLights)))
+			var lightContribution = computeLightContribution(currLight, &intersectionInfo, contributionCoef, ray, colorOnSurface)
+			finalColor = finalColor.AddColor(lightContribution)
 		}
 
-		finalColor = finalColor.AddColor(reflectionRefractionColorMix.MulFloat(reflectionContributionCoef))
 	}
 
 	return finalColor
-}
-
-func clampColor(c Color01) Color01 {
-	return Color01{
-		g_ClampMethod.Clamp(c.R),
-		g_ClampMethod.Clamp(c.G),
-		g_ClampMethod.Clamp(c.B)}
 }
 
 func computeColorAtXY(x int, y int) color.RGBA {
@@ -167,11 +182,8 @@ func computeColorAtXY(x int, y int) color.RGBA {
 	// with 2x2 anti aliasing, for every point, we send 4 ray
 	// each one contributing to 1/4th of the final pixel color
 	// much slower since we launch 4x more rays per pixels
-	var i float64
-	var j float64
-
-	for i = 0.0; i < float64(g_Options.AntiAliasingLevel); i++ {
-		for j = 0.0; j < float64(g_Options.AntiAliasingLevel); j++ {
+	for i := 0.0; i < float64(g_Options.AntiAliasingLevel); i++ {
+		for j := 0.0; j < float64(g_Options.AntiAliasingLevel); j++ {
 			var ray = g_Camera.ComputeRayDirection(float64(x)+i*steps, float64(y)+j*steps)
 			var tracedColor = trace(ray, 1.0, 0)
 
@@ -179,7 +191,7 @@ func computeColorAtXY(x int, y int) color.RGBA {
 		}
 	}
 
-	return clampColor(finalColor).ToRGBA()
+	return finalColor.Clamp(g_ClampMethod).ToRGBA()
 }
 
 func init() {
@@ -195,8 +207,6 @@ func init() {
 }
 
 func main() {
-	//var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
-
 	if g_Options.CpuProfileFilename != "" {
 		f, err := os.Create(g_Options.CpuProfileFilename)
 		if err != nil {

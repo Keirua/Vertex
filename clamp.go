@@ -9,6 +9,7 @@ type Clampable interface {
 	Clamp(v float64) float64
 }
 
+
 type ClampMinMax struct {
 }
 
@@ -23,4 +24,12 @@ type ClampExponential struct {
 func (c ClampExponential) Clamp(v float64) float64 {
 	// var coef float64 = -2.0
 	return 1 - math.Exp(v*c.Coef)
+}
+
+
+func (color Color01) Clamp(c Clampable) Color01 {
+	return Color01{
+		c.Clamp(color.R),
+		c.Clamp(color.G),
+		c.Clamp(color.B)}
 }

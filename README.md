@@ -4,7 +4,7 @@ You have probably reached this place by accident : do not expect great code qual
 
 # Current result
 
-![Current status](out/9-out-exponential-exposure--1.66-depth1-as3.png)
+![Current status](out/10-out-soft-shadows-16rays-0.2strength-as3-d2-exposure1.66.png)
 
 # Features/Todo
 
@@ -39,7 +39,7 @@ The current image status can be seen in the [out](out) directory.
  - [ ] load scene from file (simple json ?)
  - [ ] Add save to PPM file format
  - [ ] Depth of field
- - [ ] Soft shadows
+ - [x] Soft shadows
  - [ ] Better antialiasing (adaptative, poisson disk-based random sampling ?)
  - [ ] Metaballs. Just because metaballs
 
