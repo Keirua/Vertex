@@ -7,6 +7,7 @@ import (
 	"math"
 	"os"
 	"runtime/pprof"
+	"math/rand"
 )
 
 const (
@@ -89,41 +90,57 @@ func trace(ray Ray, contributionCoef float64, depth int) Color01 {
 		// Add Lighting
 		for _, currLight := range g_Lights {
 			var lightRay Ray
-			lightRay.Origin = intersectionPoint
-			lightRay.Direction = currLight.Position.Substract(intersectionPoint)
-			lightRay.Direction.Normalize()
-			if lightRay.Direction.Dot(normal) <= 0.0 {
-				continue
-			}
-			// Throw shadow rays to see if objects are blocking the light
-			var isInShadow bool = false
-			for _, currObject := range g_VisibleObjects {
-				var shadowIntersectionInfo IntersectionInfo
-				if currObject.Intersect(lightRay, &shadowIntersectionInfo) {
-					isInShadow = true
-					break
+			var currLightColorContribution Color01
+
+			// if no soft shadows : num = 1, strength = 0
+			// if soft shadows : num = 16, strength = 0.2 for instance
+			var numSoftShadowLights int = 16
+			var softShadowStrength float64 = 0.2
+
+			for i := 0; i < numSoftShadowLights; i++ {
+				lightRay.Origin = intersectionPoint
+				lightRay.Origin.X += (rand.Float64()*2.0-1.0)*softShadowStrength
+				lightRay.Origin.Y += (rand.Float64()*2.0-1.0)*softShadowStrength
+				lightRay.Origin.Z += (rand.Float64()*2.0-1.0)*softShadowStrength
+
+				lightRay.Direction = currLight.Position.Substract(intersectionPoint)
+				lightRay.Direction.Normalize()
+				if lightRay.Direction.Dot(normal) <= 0.0 {
+					continue
+				}
+				// Throw shadow rays to see if objects are blocking the light
+				var isInShadow bool = false
+				for _, currObject := range g_VisibleObjects {
+					var shadowIntersectionInfo IntersectionInfo
+					if currObject.Intersect(lightRay, &shadowIntersectionInfo) {
+						isInShadow = true
+						break
+					}
+				}
+
+				if !isInShadow {
+					// blinn-phong contribution (for the specular highlights)
+					var blinnDirection = lightRay.Direction.Substract(ray.Direction)
+					blinnDirection.Normalize()
+
+					var blinnCoef = math.Max(0.0, blinnDirection.Dot(normal))
+					var blinn = objectHit.GetMaterial().SpecularColor.MulFloat(math.Pow(blinnCoef, objectHit.GetMaterial().SpecularPower) * contributionCoef)
+					currLightColorContribution = currLightColorContribution.AddColor(blinn.MulColor(currLight.Color))
+
+					// lambert contribution
+					var lambert float64 = lightRay.Direction.Dot(normal) * contributionCoef
+
+					// currLightColorContribution = currLightColorContribution + lambert * currentLight * currentMaterial
+					currLightColorContribution = currLightColorContribution.AddColor(colorOnSurface.MulColor(currLight.Color).MulFloat(lambert))
+
+				} else {
+					// soften the shadow. Total hack, no solid mathematical foundation
+					// Should actually use the ambiant color
+					currLightColorContribution = currLightColorContribution.AddColor(colorOnSurface.MulFloat(0.1))
 				}
 			}
 
-			if !isInShadow {
-				// blinn-phong contribution (for the specular highlights)
-				var blinnDirection = lightRay.Direction.Substract(ray.Direction)
-				blinnDirection.Normalize()
-
-				var blinnCoef = math.Max(0.0, blinnDirection.Dot(normal))
-				var blinn = objectHit.GetMaterial().SpecularColor.MulFloat(math.Pow(blinnCoef, objectHit.GetMaterial().SpecularPower) * contributionCoef)
-				finalColor = finalColor.AddColor(blinn.MulColor(currLight.Color))
-
-				// lambert contribution
-				var lambert float64 = lightRay.Direction.Dot(normal) * contributionCoef
-
-				// finalColor = finalColor + lambert * currentLight * currentMaterial
-				finalColor = finalColor.AddColor(colorOnSurface.MulColor(currLight.Color).MulFloat(lambert))
-
-			} else {
-				// soften the shadow. Total hack, no solid mathematical foundation
-				finalColor = finalColor.AddColor(colorOnSurface.MulFloat(0.1))
-			}
+			finalColor = finalColor.AddColor(currLightColorContribution.MulFloat(1.0/float64(numSoftShadowLights)))
 		}
 
 		finalColor = finalColor.AddColor(reflectionRefractionColorMix.MulFloat(reflectionContributionCoef))
