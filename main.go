@@ -133,31 +133,32 @@ func trace(ray Ray, contributionCoef float64, depth int) Color01 {
 }
 
 type Clampable interface {
-	Clamp (v float64) float64
+	Clamp(v float64) float64
 }
 
 type ClampMinMax struct {
-
 }
 
-func (c *ClampMinMax) Clamp (v float64) float64 {
+func (c *ClampMinMax) Clamp(v float64) float64 {
 	return math.Min(1.0, math.Max(0.0, v))
 }
 
 type ClampExponential struct {
-	Coef 
+	Coef float64
 }
 
-func (c ClampExponential) Clamp (v float64) float64 {
+func (c ClampExponential) Clamp(v float64) float64 {
 	// var coef float64 = -2.0
-	return 1-math.Exp(v*c.Coef)
+	return 1 - math.Exp(v*c.Coef)
 }
 
 func clampColor(c Color01) Color01 {
+	var clampMethod = ClampExponential{-1.5}
+
 	return Color01{
-		clampExp(c.R),
-		clampExp(c.G),
-		clampExp(c.B)}
+		clampMethod.Clamp(c.R),
+		clampMethod.Clamp(c.G),
+		clampMethod.Clamp(c.B)}
 }
 
 func computeColorAtXY(x int, y int) color.RGBA {
