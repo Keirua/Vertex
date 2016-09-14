@@ -6,6 +6,10 @@ You have probably reached this place by accident : do not expect great code qual
 
 ![Current status](out/10-out-soft-shadows-16rays-0.2strength-as3-d2-exposure1.66.png)
 
+Evolution of the project :
+
+![Evolution](out/animation.gif)
+
 # Features/Todo
 
 The current image status can be seen in the [out](out) directory.
