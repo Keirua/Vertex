@@ -5,9 +5,9 @@ import (
 	"image/color"
 	"log"
 	"math"
+	"math/rand"
 	"os"
 	"runtime/pprof"
-	"math/rand"
 )
 
 const (
@@ -47,6 +47,8 @@ var g_VisibleObjects []Hittable
 var g_Lights = []Light{light, light2}
 var g_Camera Camera
 var g_Options Options
+
+var g_ClampMethod = ClampExponential{-1.5}
 
 func trace(ray Ray, contributionCoef float64, depth int) Color01 {
 	//fmt.Println(ray)
@@ -99,9 +101,9 @@ func trace(ray Ray, contributionCoef float64, depth int) Color01 {
 
 			for i := 0; i < numSoftShadowLights; i++ {
 				lightRay.Origin = intersectionPoint
-				lightRay.Origin.X += (rand.Float64()*2.0-1.0)*softShadowStrength
-				lightRay.Origin.Y += (rand.Float64()*2.0-1.0)*softShadowStrength
-				lightRay.Origin.Z += (rand.Float64()*2.0-1.0)*softShadowStrength
+				lightRay.Origin.X += (rand.Float64()*2.0 - 1.0) * softShadowStrength
+				lightRay.Origin.Y += (rand.Float64()*2.0 - 1.0) * softShadowStrength
+				lightRay.Origin.Z += (rand.Float64()*2.0 - 1.0) * softShadowStrength
 
 				lightRay.Direction = currLight.Position.Substract(intersectionPoint)
 				lightRay.Direction.Normalize()
@@ -140,7 +142,7 @@ func trace(ray Ray, contributionCoef float64, depth int) Color01 {
 				}
 			}
 
-			finalColor = finalColor.AddColor(currLightColorContribution.MulFloat(1.0/float64(numSoftShadowLights)))
+			finalColor = finalColor.AddColor(currLightColorContribution.MulFloat(1.0 / float64(numSoftShadowLights)))
 		}
 
 		finalColor = finalColor.AddColor(reflectionRefractionColorMix.MulFloat(reflectionContributionCoef))
@@ -149,33 +151,11 @@ func trace(ray Ray, contributionCoef float64, depth int) Color01 {
 	return finalColor
 }
 
-type Clampable interface {
-	Clamp(v float64) float64
-}
-
-type ClampMinMax struct {
-}
-
-func (c *ClampMinMax) Clamp(v float64) float64 {
-	return math.Min(1.0, math.Max(0.0, v))
-}
-
-type ClampExponential struct {
-	Coef float64
-}
-
-func (c ClampExponential) Clamp(v float64) float64 {
-	// var coef float64 = -2.0
-	return 1 - math.Exp(v*c.Coef)
-}
-
 func clampColor(c Color01) Color01 {
-	var clampMethod = ClampExponential{-1.5}
-
 	return Color01{
-		clampMethod.Clamp(c.R),
-		clampMethod.Clamp(c.G),
-		clampMethod.Clamp(c.B)}
+		g_ClampMethod.Clamp(c.R),
+		g_ClampMethod.Clamp(c.G),
+		g_ClampMethod.Clamp(c.B)}
 }
 
 func computeColorAtXY(x int, y int) color.RGBA {
