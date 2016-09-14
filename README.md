@@ -8,7 +8,7 @@ You have probably reached this place by accident : do not expect great code qual
 
 Evolution of the project :
 
-![Evolution](out/animation.gif)
+![Evolution](out/features-evolution.gif)
 
 # Features/Todo
 
@@ -58,3 +58,5 @@ In order to generate the raytraced scene with 3x3 antialiasing, reflection with 
 For other parameters, get help with :
 
     ./Vertex --help 
+
+The gif is generated thanks to the bash file [generategif.sh](generategif.sh)
