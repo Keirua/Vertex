@@ -24,3 +24,8 @@ http://web.cse.ohio-state.edu/~hwshen/681/Site/Slides_files/texture.pdf
 Texture generation using random noise
 
 http://lodev.org/cgtutor/randomnoise.html
+
+
+Very good article on gamma correction :
+
+http://blog.johnnovak.net/2016/09/21/what-every-coder-should-know-about-gamma/

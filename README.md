@@ -4,7 +4,13 @@ You have probably reached this place by accident : do not expect great code qual
 
 # Current result
 
-![Current status](out/10-out-soft-shadows-16rays-0.2strength-as3-d2-exposure1.66.png)
+![Current status](out/11-out-gamma-correction-exp--1.66-d2-as3-16shadowray-strength0.2.png)
+
+Pretty much all the current features are here : random dynamic textures on spheres, lights with specular highlights, reflection, soft shadows, anti-aliasing, exposure and gamma correction.
+
+The first versions were quick to generate (1-3 seconds), but throwing a lot of rays for the softshadows and reflection, along with the blinn-phong specular highlight computation starts to slow things down. This picture took 1mn 57 to generate.
+
+This is normal since the time complexity of the raytracing is a linear function of the number of rays. When you send 16 more ray, for soft shadows, the algorithm is 16 times slower.
 
 Evolution of the project :
 
@@ -27,6 +33,8 @@ The current image status can be seen in the [out](out) directory.
  - [ ] Refraction
  - [x] Lambert shading
  - [x] Blinn phong for specular highlights (pretty costly)
+ - [x] Gamma correction
+   - [ ]should be configurable (toggle yes/no)
  - [x] Exposure correction 
    - [ ] should be configurable (cli options or configuration file)
    - [ ] add possibility to choose between the different exposure methods

@@ -12,4 +12,5 @@ convert -quality 100 -delay 100 -loop 0 \
 \( -annotate +10+30 "Specular highlights" out/8-out-blinnphong-specular-hightlights-depth1-as3.png \) \
 \( -annotate +10+30 "Exposure correction" out/9-out-exponential-exposure--1.66-depth1-as3.png \) \
 \( -annotate +10+30 "Soft shadows" out/10-out-soft-shadows-16rays-0.2strength-as3-d2-exposure1.66.png \) \
+\( -annotate +10+30 "Gamma correction" out/11-out-gamma-correction-exp--1.66-d2-as3-16shadowray-strength0.2.png \) \
 out/features-evolution.gif

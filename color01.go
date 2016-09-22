@@ -1,6 +1,9 @@
 package main
 
-import "image/color"
+import (
+	"image/color"
+	"math"
+)
 
 type Color01 struct {
 	R float64
@@ -34,4 +37,20 @@ func (col Color01) MulColor(col2 Color01) Color01 {
 	col.B = col.B * col2.B
 
 	return col
+}
+
+func (col Color01) GammaForwardTransformation() Color01 {
+	col.R = GammaForwardTransformation(col.R)
+	col.G = GammaForwardTransformation(col.G)
+	col.B = GammaForwardTransformation(col.B)
+
+	return col
+}
+
+
+func GammaForwardTransformation(c float64) float64 {
+	if (c <= 0.0031308){
+		return 12.92*c;
+	}
+	return 1.055*math.Pow(c, 1.0/2.4)
 }

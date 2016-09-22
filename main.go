@@ -191,7 +191,7 @@ func computeColorAtXY(x int, y int) color.RGBA {
 		}
 	}
 
-	return finalColor.Clamp(g_ClampMethod).ToRGBA()
+	return finalColor.GammaForwardTransformation().Clamp(g_ClampMethod).ToRGBA()
 }
 
 func init() {
