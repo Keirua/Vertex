@@ -14,16 +14,16 @@ func (cylinder Cylinder) GetMaterial() *Material {
 
 func (cylinder Cylinder) ComputeNormalAtIntersectionPoint(info *IntersectionInfo) Vertex {
 	var normal = info.IntersectionPoint.Substract(cylinder.Center)
-	normal.Z = 0;
+	normal.Y = 0;
 	return normal
 }
 
 func (cylinder Cylinder) Intersect(ray Ray, info *IntersectionInfo) bool {
 	var origin = ray.Origin.Substract(cylinder.Center)
 
-	var a float64 = ray.Direction.X*ray.Direction.X + ray.Direction.Y*ray.Direction.Y
-	var b float64 = 2*origin.X*ray.Direction.X+2*origin.Y*ray.Direction.Y
-	var c float64 = origin.X*origin.X + origin.Y*origin.Y - 1.0
+	var a float64 = ray.Direction.X*ray.Direction.X + ray.Direction.Z*ray.Direction.Z
+	var b float64 = 2*origin.X*ray.Direction.X+2*origin.Z*ray.Direction.Z
+	var c float64 = origin.X*origin.X + origin.Z*origin.Z - 1.0
 
 	if (a != 0) {
 		var sqrtDelta = math.Sqrt(b*b - 4.0*a*c)
@@ -43,8 +43,12 @@ func (cylinder Cylinder) Intersect(ray Ray, info *IntersectionInfo) bool {
 */
 func (cylinder Cylinder) ComputeUV(info IntersectionInfo) (float64, float64) {
 	// Cylindrical texture mapping
-	var u = math.Acos(info.IntersectionPoint.X/cylinder.Radius) / (2*math.Pi)
-	var v = math.Acos(info.IntersectionPoint.Y/cylinder.Radius) / (2*math.Pi)
+	var ip  =info.IntersectionPoint
+	var u = math.Sqrt(ip.X*ip.X+ip.Z*ip.Z)
+	var v = math.Atan2(ip.Z, ip.X)
 
+	/*var u = math.Acos(info.IntersectionPoint.X/cylinder.Radius) / (2*math.Pi)
+	var v = math.Acos(info.IntersectionPoint.Z/cylinder.Radius) / (2*math.Pi)
+	*/
 	return u, v
 }

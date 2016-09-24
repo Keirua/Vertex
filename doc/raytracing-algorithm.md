@@ -17,9 +17,10 @@ http://bentonian.com/teaching/AdvGraph1314
 
 
 
-About texturing (spherical/cylindrical mapping)
+About texturing (planar/spherical/cylindrical mapping)
 
 http://web.cse.ohio-state.edu/~hwshen/681/Site/Slides_files/texture.pdf
+http://www.eng.utah.edu/~cs5610/lectures/two-part%20texture%20mapping%202010.pdf
 
 Texture generation using random noise
 
