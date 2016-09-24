@@ -38,11 +38,12 @@ func (sphere Sphere) Intersect(ray Ray, info *IntersectionInfo) bool {
 /*
    The normal must be normalized
 */
-func (sphere Sphere) ComputeUV(normal Vertex) (float64, float64) {
+func (sphere Sphere) ComputeUV(info IntersectionInfo) (float64, float64) {
 	/*
 	   u = 0.5 + arctan2(dz, dx) / (2*pi)
 	   v = 0.5 - arcsin(dy) / pi
 	*/
+    var normal = info.Normal
 	var u = 0.5 + (math.Atan2(normal.Z, normal.X) / (2 * math.Pi))
 	var v = 0.5 - (math.Asin(normal.Y) / math.Pi)
 

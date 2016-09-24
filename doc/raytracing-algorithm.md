@@ -29,3 +29,11 @@ http://lodev.org/cgtutor/randomnoise.html
 Very good article on gamma correction :
 
 http://blog.johnnovak.net/2016/09/21/what-every-coder-should-know-about-gamma/
+
+
+Transformations :
+
+http://woo4.me/raytracer/translations/
+
+Fast matrix inversion algorithm : 
+ftp://download.intel.com/design/PentiumIII/sml/24504301.pdf

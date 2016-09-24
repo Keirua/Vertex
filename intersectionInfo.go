@@ -28,12 +28,11 @@ func (intersectionInfo *IntersectionInfo) GetIntersectionInfo(ray Ray, scene *[]
 	}
 
 	// If so, computes intersection point and normal
-	if intersectionInfo.ObjectHit != nil {
+	if intersectionInfo.ObjectHit != nil && intersectionInfo.T > 0.0 {
 		intersectionInfo.IntersectionPoint = ray.VertexAt(intersectionInfo.T)
 		intersectionInfo.Ray = &ray
 		var normal = (*intersectionInfo.ObjectHit).ComputeNormalAtIntersectionPoint(intersectionInfo)
 		normal.Normalize()
 		intersectionInfo.Normal = normal
-
 	}
 }

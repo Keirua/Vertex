@@ -31,13 +31,16 @@ var redMaterial = Material{Color01{1, 0, 0}, 0.5, nil, Color01{0.8, 0.8, 0.8}, 5
 var blueMaterial = Material{Color01{0, .5, 1}, 0.5, marble5, Color01{0.3, 0.3, 0.3}, 60}
 var purpleMaterial = Material{Color01{0.65, .2, 0.97}, 0.5, &checkboardTexture16, Color01{0.8, 0.8, 0.8}, 60}
 var greenMaterial = Material{Color01{0.3, 0.9, 0.2}, 0.5, turbulence, Color01{0.8, 0.8, 0.8}, 60}
+var purpleMaterialCylinder = Material{Color01{0.65, .2, 0.97}, 0.5, nil, Color01{0.8, 0.8, 0.8}, 60}
 
 var sphereFloor = Sphere{Vertex{0, 10003, -20}, 10000.0, &whiteMaterial}
 var planeFloor = Plane{Vertex{0, 1, 0}, Vertex{0, -1, 0}, &whiteMaterial}
 var sphere1 = Sphere{Vertex{4.0, -1, -5}, 2.0, &redMaterial}
 var sphere2 = Sphere{Vertex{0.0, 0, -15}, 4, &greenMaterial}
 var sphere3 = Sphere{Vertex{3.0, 2, -10}, 3, &blueMaterial}
-var sphere4 = Sphere{Vertex{-5.5, 0, -8}, 3, &purpleMaterial}
+//var sphere4 = Sphere{Vertex{-5.5, 0, -8}, 3, &purpleMaterial}
+// var cylinder = Cylinder{Vertex{-5.5, 0, -8}, 3, &purpleMaterialCylinder}
+var cylinder = Cylinder{Vertex{-5.5, 0, -8}, 3, &purpleMaterialCylinder}
 
 var light = Light{Vertex{3.0, -10, -10}, Color01{0.65, .6, 0.97}}
 var light2 = Light{Vertex{0, -5, 0}, Color01{0.87, 0.8, 0.97}}
@@ -56,7 +59,7 @@ func ComputeColorOnSurface(objectHit Hittable, intersectionInfo IntersectionInfo
 
 	// If there is a texture, we add it's contribution
 	if objectHit.GetMaterial().Texture != nil {
-		var u, v = objectHit.ComputeUV(intersectionInfo.Normal)
+		var u, v = objectHit.ComputeUV(intersectionInfo)
 		var colorAtUV = objectHit.GetMaterial().Texture.GetColor01AtUV(u, v)
 		colorOnSurface = colorOnSurface.MulColor(colorAtUV)
 	}
@@ -200,7 +203,7 @@ func init() {
 
 	g_Camera.Initialize(g_Options.Width, g_Options.Height, g_Options.Fov)
 
-	g_VisibleObjects = append(g_VisibleObjects, sphere2, sphere1, sphereFloor, sphere3, sphere4 /*, lightSphere*/)
+	g_VisibleObjects = append(g_VisibleObjects, sphere2, sphere1, sphereFloor, sphere3, /*sphere4,*/ cylinder /*, lightSphere*/)
 
 	fmt.Println(g_Options.ClampMethod)
 	if g_Options.ClampMethod == "minmax" {
