@@ -15,6 +15,7 @@ const (
 	DEFAULT_FOV                = 30.0
 	DEFAULT_ANTIALIASING_LEVEL = 1 // minimum
 	MAX_DEPTH                  = 2
+	DEFAULT_EXPOSURE_CORRRECTION = -1.66
 )
 
 var checkboardTexture16 = CheckboardTexture{16, 16}
@@ -47,7 +48,7 @@ var g_Lights = []Light{light, light2}
 var g_Camera Camera
 var g_Options Options
 
-var g_ClampMethod = ClampExponential{-1.66}
+var g_ClampMethod Clampable
 
 func ComputeColorOnSurface(objectHit Hittable, intersectionInfo IntersectionInfo) Color01{
 	// Compute color at the surface of the object hit
@@ -191,7 +192,7 @@ func computeColorAtXY(x int, y int) color.RGBA {
 		}
 	}
 
-	return finalColor.GammaForwardTransformation().Clamp(g_ClampMethod).ToRGBA()
+	return finalColor/*.GammaForwardTransformation()*/.Clamp(g_ClampMethod).ToRGBA()
 }
 
 func init() {
@@ -200,6 +201,13 @@ func init() {
 	g_Camera.Initialize(g_Options.Width, g_Options.Height, g_Options.Fov)
 
 	g_VisibleObjects = append(g_VisibleObjects, sphere2, sphere1, sphereFloor, sphere3, sphere4 /*, lightSphere*/)
+
+	fmt.Println(g_Options.ClampMethod)
+	if g_Options.ClampMethod == "minmax" {
+		g_ClampMethod = &ClampMinMax{}
+	} else {
+		g_ClampMethod = &ClampExponential{g_Options.ExposureCorrection}
+	}
 	//g_VisibleObjects = append(g_VisibleObjects, sphere2, sphere1, planeFloor, sphere3, sphere4 /*, lightSphere*/)
 	//g_VisibleObjects = append(g_VisibleObjects, sphere2, planeFloor)
 	//g_VisibleObjects = append(g_VisibleObjects, sphere2, sphereFloor)

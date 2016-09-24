@@ -13,7 +13,7 @@ type Clampable interface {
 type ClampMinMax struct {
 }
 
-func (c *ClampMinMax) Clamp(v float64) float64 {
+func (c ClampMinMax) Clamp(v float64) float64 {
 	return math.Min(1.0, math.Max(0.0, v))
 }
 

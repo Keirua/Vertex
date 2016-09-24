@@ -16,6 +16,8 @@ type Options struct {
 	// if soft shadows : num = 16, strength = 0.2 for instance
 	NumSoftShadowRays	int
 	SoftShadowStrength	float64
+	ClampMethod         string
+	ExposureCorrection  float64
 }
 
 func (options *Options) ParseCommandLineOptions() {
@@ -28,6 +30,9 @@ func (options *Options) ParseCommandLineOptions() {
 	flag.Float64Var(&options.SoftShadowStrength, "softShadowStrength", 0.0, "amount of displacement for the soft shadow rays")
 	flag.IntVar(&options.NumSoftShadowRays, "nbSoftShadowRays", 1, "nb of rays to soft for soft shadows (16 is good)")
 	flag.StringVar(&options.CpuProfileFilename, "cpuprofile", "", "cpu profile for debug")
+
+	flag.Float64Var(&options.ExposureCorrection, "exposure_correction", DEFAULT_EXPOSURE_CORRRECTION, "Amount of exposure correction")
+	flag.StringVar(&options.ClampMethod, "clamp_method", "exposure", "can be 'minmax' or 'exposure'. If exposure, the level can be set w/ -exposure_correction")
 
 	flag.Parse()
 }
