@@ -30,6 +30,7 @@ The current image status can be seen in the [out](out) directory.
    - [ ] Plane
    - [ ] Torus
    - [ ] Cylinder
+ - [ ] Transformations (rotation translation scaling)
  - [ ] Refraction
  - [x] Lambert shading
  - [x] Blinn phong for specular highlights (pretty costly)

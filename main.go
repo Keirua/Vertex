@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
-	"image/color"
-	"log"
 	"math"
+	"image/color"
+	/*"log"
 	"os"
-	"runtime/pprof"
+	"runtime/pprof"*/
 )
 
 const (
@@ -218,6 +218,7 @@ func init() {
 }
 
 func main() {
+	/*
 	if g_Options.CpuProfileFilename != "" {
 		f, err := os.Create(g_Options.CpuProfileFilename)
 		if err != nil {
@@ -231,5 +232,5 @@ func main() {
 	fmt.Println(g_Options)
 	SavePNG(image, g_Options.OutputFilename)
 
-	fmt.Println("Success !")
+	fmt.Println("Success !")*/
 }

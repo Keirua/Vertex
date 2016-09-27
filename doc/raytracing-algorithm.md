@@ -36,5 +36,5 @@ Transformations :
 
 http://woo4.me/raytracer/translations/
 
-Fast matrix inversion algorithm : 
-ftp://download.intel.com/design/PentiumIII/sml/24504301.pdf
+Matrix inversion can be achieved using Laplace Expansion Theorem :
+https://www.geometrictools.com/Documentation/LaplaceExpansionTheorem.pdf
